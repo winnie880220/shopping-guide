@@ -1,0 +1,6 @@
+{
+  "name": "Nest & Co.",
+  "description": "A guided shopping assistance interface concept featuring a minimalist and elegant design for home furniture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

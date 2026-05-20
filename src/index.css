@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Noto Sans TC", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", "Noto Sans TC", sans-serif;
+  
+  --color-ikea-blue: #242424; 
+  --color-ikea-yellow: #f0f0f0; 
+  --color-app-bg: #FFFFFF;
+  --color-app-text: #242424;
+}
+
+@layer base {
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-[--color-app-bg] text-[--color-app-text];
+  }
+}
+
+/* Custom Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Theme Utilities */
+.ikea-card {
+  @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden;
+}
+
+.ikea-btn-primary {
+  @apply bg-[--color-ikea-blue] text-white py-3 rounded-sm text-[12px] font-bold active:scale-[0.98] transition-all;
+}
+
+.ikea-btn-secondary {
+  @apply border border-gray-200 text-gray-800 py-3 rounded-sm text-[12px] font-bold active:scale-[0.98] transition-all;
+}
+
+.nest-card {
+  @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden;
+}
+
+.nest-btn-primary {
+  @apply bg-[--color-ikea-blue] text-white py-3 rounded-sm text-[12px] font-bold active:scale-[0.98] transition-all;
+}
+
+.nest-btn-secondary {
+  @apply border border-gray-200 text-gray-800 py-3 rounded-sm text-[12px] font-bold active:scale-[0.98] transition-all w-full text-left;
+}
+
