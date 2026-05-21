@@ -274,7 +274,7 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView }) 
               onAllowedClick={() => {
                 if (currentStep === 4) {
                   if (deliveryMethod !== 'HOME') {
-                    showToast('請先選擇「宅配到府」');
+                    showToast('請選擇配送方式');
                     return;
                   }
                   setView({ type: 'CHECKOUT' });

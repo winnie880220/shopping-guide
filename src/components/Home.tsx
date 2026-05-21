@@ -5,6 +5,7 @@ import { ViewState } from '../types';
 import { PRODUCTS } from '../data';
 import { GuardedDiv } from './GuardedButton';
 import { useStudy } from '../context/StudyContext';
+import { TASK_TABLE_ID } from '../study/taskConfig';
 
 interface HomeProps {
   setView: (view: ViewState) => void;
@@ -37,7 +38,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
     { id: 'lamp', name: '燈具', icon: <Lamp size={24} /> },
   ];
 
-  const popularProducts = PRODUCTS.slice(0, 4);
+  const popularProducts = PRODUCTS.filter(p => p.id !== TASK_TABLE_ID).slice(0, 4);
 
   return (
     <div className="pb-28 bg-white min-h-screen">

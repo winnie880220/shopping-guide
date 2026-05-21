@@ -163,4 +163,21 @@ export const PRODUCTS: Product[] = [
     material: '金屬',
     aiReason: '多功能用途，輕型便利',
   },
+  {
+    id: 'p1',
+    name: 'POÄNG 扶手椅',
+    categoryId: 'chairs',
+    price: 2990,
+    description: '經典彎木扶手椅，搭配高彈泡棉墊，舒適又耐看。',
+    image: '/src/assets/images/nordic_chair_white_bg_1779277500873.png',
+    details: ['彎木框架', '可替換椅墊', '適合客廳閱讀角'],
+    specs: [
+      { label: '尺寸', value: '68x82x100 公分' },
+      { label: '材質', value: '彎木、泡棉' },
+    ],
+    stock: [{ location: '內湖店', status: 'in-stock' }],
+    tags: ['經典款', '客廳'],
+    sizeDisplay: '標準',
+    material: '布料',
+  },
 ];
