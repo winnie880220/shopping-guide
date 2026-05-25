@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search as SearchIcon, X, ArrowLeft, Sparkles } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowLeft } from 'lucide-react';
 import { ViewState } from '../types';
 import { motion } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
@@ -17,9 +17,9 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) =>
   const [isLoading, setIsLoading] = useState(false);
   const { tryAction, canAction } = useStudy();
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent, directQuery?: string) => {
     e.preventDefault();
-    const q = query.trim();
+    const q = (directQuery ?? query).trim();
     if (!q) return;
 
     if (!tryAction('submit-search')) return;
@@ -32,14 +32,7 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) =>
         setView({
           type: 'PRODUCT_LIST',
           categoryId: localResult.categoryId,
-          filters: {
-            minPrice: localResult.minPrice,
-            maxPrice: localResult.maxPrice,
-            size: localResult.size,
-            keywords: localResult.keywords,
-          },
-          aiSummary: localResult.aiSummary,
-          autoFilled: localResult.autoFilled,
+          searchQuery: q,
         });
         return;
       }
@@ -58,9 +51,10 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) =>
           categoryId: data.categoryId,
           filters: data,
           aiSummary: data.aiSummary,
+          searchQuery: q,
         });
       } else {
-        setView({ type: 'PRODUCT_LIST', categoryId: 'mattress' });
+        setView({ type: 'PRODUCT_LIST', categoryId: 'mattress', searchQuery: q });
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -69,17 +63,10 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) =>
         setView({
           type: 'PRODUCT_LIST',
           categoryId: fallback.categoryId,
-          filters: {
-            minPrice: fallback.minPrice,
-            maxPrice: fallback.maxPrice,
-            size: fallback.size,
-            keywords: fallback.keywords,
-          },
-          aiSummary: fallback.aiSummary,
-          autoFilled: fallback.autoFilled,
+          searchQuery: q,
         });
       } else {
-        setView({ type: 'PRODUCT_LIST', categoryId: 'mattress' });
+        setView({ type: 'PRODUCT_LIST', categoryId: 'mattress', searchQuery: q });
       }
     } finally {
       setIsLoading(false);
@@ -103,7 +90,7 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) =>
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="1000元的桌子"
+            placeholder="桌子"
             autoFocus
             className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
@@ -131,15 +118,23 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) =>
       </div>
 
       <div className="p-4">
-        <div className="mb-6 p-5 bg-gradient-to-br from-gray-900 to-gray-800 rounded-3xl shadow-lg">
-          <div className="flex items-center gap-2.5 mb-3">
-            <Sparkles size={18} className="text-amber-300 flex-shrink-0" />
-            <h4 className="text-[15px] font-bold text-white">尋感助手</h4>
+        {!query && (
+          <div className="mb-4">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">熱門搜尋</h4>
+            <div className="flex flex-wrap gap-2">
+              {['床墊', '沙發', '書桌', '餐桌', '椅子', '茶几', '衣櫃', '燈具'].map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => { setQuery(tag); handleSearch({ preventDefault: () => {} } as React.FormEvent, tag); }}
+                  className="px-3.5 py-1.5 bg-gray-100 rounded-full text-sm text-gray-700 hover:bg-gray-200 transition-colors"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
           </div>
-          <p className="text-[14px] text-gray-200 leading-relaxed">
-            您可以用自然語言描述需求，系統會理解語意並代為設定篩選條件，您只需確認結果即可。
-          </p>
-        </div>
+        )}
 
         {query && (
           <button

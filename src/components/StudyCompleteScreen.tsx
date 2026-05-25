@@ -2,9 +2,14 @@ import React from 'react';
 import { CheckCircle2, ExternalLink } from 'lucide-react';
 import { getSurveyCakeEmbedUrl, getSurveyCakeUrl } from '../study/surveyConfig';
 
+function getParticipantId(): string {
+  return sessionStorage.getItem('study-participant-id') || '';
+}
+
 export const StudyCompleteScreen: React.FC = () => {
-  const surveyUrl = getSurveyCakeUrl();
-  const embedUrl = getSurveyCakeEmbedUrl();
+  const userId = getParticipantId();
+  const surveyUrl = getSurveyCakeUrl(userId);
+  const embedUrl = getSurveyCakeEmbedUrl(userId);
 
   const goToSurvey = () => {
     if (surveyUrl) window.location.assign(surveyUrl);

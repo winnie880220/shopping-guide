@@ -52,7 +52,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const tryFinishTask3 = (nextSpecs: boolean, nextStock: boolean, justAdded = false) => {
     const inCart = justAdded || tableInCart;
     if (currentStep === 3 && productId === TASK_TABLE_ID && nextSpecs && nextStock && inCart) {
-      completeTaskWithFeedback(3, '茶几已加入購物車', () => setView({ type: 'CART' }));
+      completeTaskWithFeedback(3, '茶几已加入購物車');
     }
   };
 
@@ -173,6 +173,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 space-y-5">
                   {product.stock.map(store => {
                     const status = stockStatusLabel(store.status);
+                    const isOnline = store.location === '網路商店';
                     return (
                       <div
                         key={store.location}
@@ -184,12 +185,14 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                             <div className={`w-2.5 h-2.5 rounded-full ${status.dot}`} />
                             <span className={`text-xs font-bold ${status.color}`}>{status.text}</span>
                           </div>
+                          {!isOnline && store.status === 'in-stock' && (
+                            <p className="text-[10px] text-gray-400 mt-1.5">放置區域: 貨架 12, 走道 04</p>
+                          )}
                         </div>
                         <MapPin size={18} className="text-gray-400 mt-1" />
                       </div>
                     );
                   })}
-                  <p className="text-xs text-gray-400 pt-2">放置區域: 貨架 12, 走道 04</p>
                 </div>
               </motion.div>
             )}

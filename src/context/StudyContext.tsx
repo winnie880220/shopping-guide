@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   StudyAction,
   StudyTaskStep,
@@ -8,6 +8,34 @@ import {
   isActionAllowed,
   OFF_PATH_TOAST_VARIANTS,
 } from '../study/taskConfig';
+
+function generateParticipantId(): string {
+  const stored = sessionStorage.getItem('study-participant-id');
+  if (stored) return stored;
+  const id = `P-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+  sessionStorage.setItem('study-participant-id', id);
+  return id;
+}
+
+async function logAllTasksToNotion(userId: string, durations: Record<number, number>) {
+  try {
+    await fetch('/api/log-task', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        date: new Date().toISOString().split('T')[0],
+        task1_sec: durations[1] != null ? Math.round(durations[1] / 1000 * 10) / 10 : null,
+        task2_sec: durations[2] != null ? Math.round(durations[2] / 1000 * 10) / 10 : null,
+        task3_sec: durations[3] != null ? Math.round(durations[3] / 1000 * 10) / 10 : null,
+        task4_sec: durations[4] != null ? Math.round(durations[4] / 1000 * 10) / 10 : null,
+        task5_sec: durations[5] != null ? Math.round(durations[5] / 1000 * 10) / 10 : null,
+      }),
+    });
+  } catch (err) {
+    console.error('Failed to log tasks:', err);
+  }
+}
 
 type ToastState = { message: string; id: number } | null;
 
@@ -60,6 +88,13 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
   const [introConfirmedSteps, setIntroConfirmedSteps] = useState<Set<StudyTaskStep>>(new Set());
   const [taskCompleteOverlay, setTaskCompleteOverlay] = useState<StudyTaskStep | null>(null);
   const afterNextIntroRef = useRef<(() => void) | null>(null);
+  const taskStartTimeRef = useRef<number | null>(null);
+  const taskDurationsRef = useRef<Record<number, number>>({});
+  const participantIdRef = useRef<string>('');
+
+  useEffect(() => {
+    participantIdRef.current = generateParticipantId();
+  }, []);
 
   const isStudyComplete = completedSteps.has(5);
   const isStudyBriefingVisible =
@@ -99,6 +134,14 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const completeTask = useCallback((step: StudyTaskStep, afterNextIntro?: () => void) => {
+    if (taskStartTimeRef.current) {
+      const durationMs = Date.now() - taskStartTimeRef.current;
+      taskDurationsRef.current[step] = durationMs;
+      taskStartTimeRef.current = null;
+    }
+    if (step === 5) {
+      logAllTasksToNotion(participantIdRef.current, taskDurationsRef.current);
+    }
     setTaskCompleteOverlay(step);
     afterNextIntroRef.current = afterNextIntro ?? null;
   }, []);
@@ -125,6 +168,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
 
   const confirmTaskIntro = useCallback(() => {
     setIntroConfirmedSteps(prev => new Set([...prev, currentStep]));
+    taskStartTimeRef.current = Date.now();
     const cb = afterNextIntroRef.current;
     afterNextIntroRef.current = null;
     if (cb) {

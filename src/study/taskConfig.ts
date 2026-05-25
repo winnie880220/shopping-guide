@@ -68,7 +68,7 @@ export const STUDY_BRIEFING = {
 export const TASK_HINTS: Record<StudyTaskStep, { title: string; hint: string; assist?: string }> = {
   1: {
     title: '任務 1 · 搜尋與篩選',
-    hint: '請使用搜尋欄查詢「台幣 5000–12000 之間的雙人床墊」，找出符合條件的商品並加入購物車。',
+    hint: '請搜尋「床墊」，並透過篩選功能設定「雙人尺寸」與「預算 NT$5,000–12,000」，找出符合條件的商品並加入購物車。',
   },
   2: {
     title: '任務 2 · 分類瀏覽',
@@ -80,8 +80,8 @@ export const TASK_HINTS: Record<StudyTaskStep, { title: string; hint: string; as
   },
   4: {
     title: '任務 4 · 配送方式',
-    hint: '請在購物車中選擇「宅配到府」，確認運費後點選「前往結帳」。',
-    assist: '請選擇配送方式並確認運費',
+    hint: '請找到購物車，選擇「宅配到府」配送方式，確認運費後點選「前往結帳」。',
+    assist: '請先前往購物車',
   },
   5: {
     title: '任務 5 · 調整購物車',
@@ -137,19 +137,11 @@ export const OFF_PATH_TOAST_VARIANTS = [
 
 export function parseMattressSearchQuery(query: string) {
   const q = query.trim();
-  const isMattressQuery =
-    /床墊|mattress/i.test(q) &&
-    (/雙人|5000|12000|5,?000|1[02],?000|預算|台幣/i.test(q) || q.length > 4);
+  const isMattressQuery = /床墊|mattress/i.test(q);
 
   if (!isMattressQuery) return null;
 
   return {
     categoryId: 'mattress',
-    minPrice: 5000,
-    maxPrice: 12000,
-    size: '雙人',
-    keywords: ['雙人'],
-    aiSummary: '雙人尺寸 · NT$5,000–12,000 預算範圍',
-    autoFilled: ['尺寸：雙人', '預算：NT$5,000–12,000'],
   };
 }

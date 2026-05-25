@@ -1,16 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Search, ChevronRight } from 'lucide-react';
 import { CATEGORIES } from '../data';
 import { ViewState } from '../types';
 import { motion } from 'motion/react';
 import { useStudy } from '../context/StudyContext';
 
+const ROOM_FILTERS = ['全部', '客廳', '臥室', '書房', '廚房', '餐廳', '陽台'] as const;
+
+const ROOM_CATEGORY_MAP: Record<string, string[]> = {
+  '客廳': ['sofas', 'coffee-tables', 'lighting', 'rugs', 'decor'],
+  '臥室': ['mattress', 'storage', 'lighting'],
+  '書房': ['desks', 'chairs', 'lighting'],
+  '廚房': ['storage', 'dining-tables'],
+  '餐廳': ['dining-tables', 'chairs', 'lighting'],
+  '陽台': ['decor', 'rugs'],
+};
+
 interface CategoryListProps {
   setView: (view: ViewState) => void;
 }
 
 export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
-  const { tryAction } = useStudy();
+  const { tryAction, showToast } = useStudy();
+  const [activeFilter, setActiveFilter] = useState<string>('全部');
+
+  const blockAction = () => {
+    showToast('此功能不在本次任務範圍內，請依上方提示繼續。');
+  };
+
+  const filteredCategories = activeFilter === '全部'
+    ? CATEGORIES
+    : CATEGORIES.filter(c => ROOM_CATEGORY_MAP[activeFilter]?.includes(c.id));
 
   return (
     <div className="pb-32 bg-white min-h-screen">
@@ -26,12 +46,18 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
 
       <div className="sticky top-[160px] bg-white/80 backdrop-blur-md z-20 pb-4 border-b border-gray-50">
         <div className="flex overflow-x-auto no-scrollbar px-6 space-x-2">
-          {['全部', '客廳', '臥室', '書房', '廚房', '餐廳', '陽台'].map((filter, idx) => (
+          {ROOM_FILTERS.map((filter) => (
             <button
               key={filter}
-              onClick={() => tryAction('open-coffee-tables')}
+              onClick={() => {
+                if (filter === '客廳' && activeFilter !== '客廳') {
+                  tryAction('open-coffee-tables', () => setActiveFilter(filter));
+                } else {
+                  blockAction();
+                }
+              }}
               className={`whitespace-nowrap px-6 py-3 rounded-full text-[11px] font-black tracking-widest transition-all ${
-                idx === 0
+                activeFilter === filter
                   ? 'bg-white border-2 border-gray-900 text-gray-900'
                   : 'bg-gray-50 border-2 border-transparent text-gray-400'
               }`}
@@ -43,7 +69,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
       </div>
 
       <div className="p-6 grid grid-cols-2 gap-x-4 gap-y-8">
-        {CATEGORIES.map((category, idx) => {
+        {filteredCategories.map((category, idx) => {
           const isWoodTable = category.id === 'coffee-tables';
 
           return (
@@ -58,7 +84,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
                     setView({ type: 'PRODUCT_LIST', categoryId: category.id });
                   });
                 } else {
-                  tryAction('open-coffee-tables');
+                  blockAction();
                 }
               }}
               className="flex flex-col group cursor-pointer"
@@ -97,16 +123,6 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
               <br />
               極簡北歐居家風格
             </h2>
-            <button
-              onClick={() =>
-                tryAction('open-coffee-tables', () => {
-                  setView({ type: 'PRODUCT_LIST', categoryId: 'coffee-tables' });
-                })
-              }
-              className="bg-white text-gray-900 text-[10px] font-black px-6 py-2.5 rounded-full uppercase tracking-wider"
-            >
-              立刻瀏覽
-            </button>
           </div>
           <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
         </div>

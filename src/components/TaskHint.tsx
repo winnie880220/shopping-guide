@@ -15,8 +15,24 @@ export const TaskHint: React.FC = () => {
       key={currentStep}
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 py-3.5 shadow-[0_1px_8px_rgba(0,0,0,0.03)]"
+      className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 pt-3 pb-3.5 shadow-[0_1px_8px_rgba(0,0,0,0.03)]"
     >
+      {/* 進度條 */}
+      <div className="flex gap-1.5 mb-3">
+        {[1, 2, 3, 4, 5].map((step) => (
+          <div
+            key={step}
+            className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+              step < currentStep
+                ? 'bg-amber-500'
+                : step === currentStep
+                  ? 'bg-amber-400'
+                  : 'bg-gray-200'
+            }`}
+          />
+        ))}
+      </div>
+
       <div className="flex items-start gap-3">
         <div className="mt-0.5 p-1.5 rounded-full bg-amber-50 text-amber-600 flex-shrink-0">
           <Sparkles size={14} />

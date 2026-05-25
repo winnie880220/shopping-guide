@@ -25,6 +25,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         alt={product.name}
         className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
       />
+      {product.sizeDisplay && (
+        <div className="absolute bottom-2 right-2">
+          <span className="bg-gray-900/80 backdrop-blur-sm text-[10px] font-bold text-white px-2 py-0.5 rounded-full shadow-sm">
+            {product.sizeDisplay}
+          </span>
+        </div>
+      )}
       {showAiBadge && product.aiReason && (
         <div className="absolute bottom-2 left-2 right-2">
           <div className="bg-white/80 backdrop-blur-md px-2 py-1.5 rounded-lg border border-gray-100 shadow-sm">

@@ -75,6 +75,7 @@ export default function App() {
             addToCart={addToCart}
             aiSummary={view.aiSummary}
             initialFilters={view.filters}
+            searchQuery={view.searchQuery}
           />
         );
       case 'PRODUCT_DETAIL':

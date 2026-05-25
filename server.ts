@@ -1,13 +1,47 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
+import { Client } from "@notionhq/client";
+
+const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const NOTION_DB_ID = process.env.NOTION_DATABASE_ID!;
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = 3001;
 
   app.use(express.json());
+
+  // 記錄所有任務操作時長到 Notion（一位參與者一筆）
+  app.post("/api/log-task", async (req, res) => {
+    const { userId, date, task1_sec, task2_sec, task3_sec, task4_sec, task5_sec } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId" });
+    }
+
+    try {
+      await notion.pages.create({
+        parent: { database_id: NOTION_DB_ID },
+        properties: {
+          "UserID": { title: [{ text: { content: userId } }] },
+          "Date": { date: { start: date || new Date().toISOString().split("T")[0] } },
+          "task1_sec": { number: task1_sec ?? null },
+          "task2_sec": { number: task2_sec ?? null },
+          "task3_sec": { number: task3_sec ?? null },
+          "task4_sec": { number: task4_sec ?? null },
+          "task5_sec": { number: task5_sec ?? null },
+        },
+      });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Notion Error:", error);
+      res.status(500).json({ error: "Failed to log task to Notion" });
+    }
+  });
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY,

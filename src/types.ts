@@ -42,6 +42,7 @@ export type ViewState =
       };
       aiSummary?: string;
       autoFilled?: string[];
+      searchQuery?: string;
     }
   | { type: 'PRODUCT_DETAIL'; productId: string }
   | { type: 'CART' }

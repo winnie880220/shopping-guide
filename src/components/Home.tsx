@@ -54,7 +54,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           <input
             type="text"
             readOnly
-            placeholder="1000元的桌子"
+            placeholder="桌子"
             className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 pl-12 pr-4 text-xs font-medium focus:outline-none cursor-pointer"
           />
         </GuardedDiv>
