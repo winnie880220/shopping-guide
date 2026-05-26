@@ -5,61 +5,61 @@ export const CATEGORIES: Category[] = [
     id: 'mattress',
     name: '床墊',
     description: '專業支撐，舒適入眠',
-    image: '/src/assets/images/mattress_double_1779274923685.png',
+    image: '/images/mattress_double_1779274923685.png',
   },
   {
     id: 'sofas',
     name: '沙發',
     description: '居家生活的放鬆核心',
-    image: '/src/assets/images/living_room_inspiration_1779274975609.png',
+    image: '/images/living_room_inspiration_1779274975609.png',
   },
   {
     id: 'chairs',
     name: '椅子與餐椅',
     description: '兼具美感與人體工學',
-    image: '/src/assets/images/nordic_chair_white_bg_1779277500873.png',
+    image: '/images/nordic_chair_white_bg_1779277500873.png',
   },
   {
     id: 'coffee-tables',
     name: '茶几與邊桌',
     description: '客廳美學的靈魂角色',
-    image: '/src/assets/images/coffee_table_wood_1779274939585.png',
+    image: '/images/coffee_table_wood_1779274939585.png',
   },
   {
     id: 'dining-tables',
     name: '餐桌',
     description: '相聚時光的溫潤陪伴',
-    image: '/src/assets/images/dining_table_white_bg_1779277518370.png',
+    image: '/images/dining_table_white_bg_1779277518370.png',
   },
   {
     id: 'lighting',
     name: '燈具',
     description: '氣氛與光影的完美調和',
-    image: '/src/assets/images/lighting_pendant_lamp.jpg',
+    image: '/images/lighting_pendant_lamp.jpg',
   },
   {
     id: 'desks',
     name: '書桌與辦公',
     description: '激發靈感的創意空間',
-    image: '/src/assets/images/desk_workspace_modern.jpg',
+    image: '/images/desk_workspace_modern.jpg',
   },
   {
     id: 'storage',
     name: '衣櫃與收納',
     description: '秩序感的北歐收納哲學',
-    image: '/src/assets/images/wardrobe_white_closet.jpg',
+    image: '/images/wardrobe_white_closet.jpg',
   },
   {
     id: 'rugs',
     name: '地毯',
     description: '腳尖上的柔軟觸感',
-    image: '/src/assets/images/nordic_rug_white_bg_1779277550962.png',
+    image: '/images/nordic_rug_white_bg_1779277550962.png',
   },
   {
     id: 'decor',
     name: '家飾配件',
     description: '點亮空間的驚喜細節',
-    image: '/src/assets/images/minimalist_vase_white_bg_1779277533786.png',
+    image: '/images/minimalist_vase_white_bg_1779277533786.png',
   },
 ];
 
@@ -70,7 +70,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 15900,
     description: '高密度獨立筒搭配天然乳膠層，極致舒適體驗。',
-    image: '/src/assets/images/mattress_double_1779274923685.png',
+    image: '/images/mattress_double_1779274923685.png',
     details: ['頂級睡感', '天然乳膠透氣層', '高密度彈簧'],
     specs: [
       { label: '尺寸', value: '180x200 公分 (雙人加大)' },
@@ -89,7 +89,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 12900,
     description: '三層不同密度的泡棉，提供溫和的支撐感。',
-    image: '/src/assets/images/mattress_double_new.jpg',
+    image: '/images/mattress_double_new.jpg',
     details: ['絕佳支撐感', '適合偏好泡棉質感者', '易於拆洗床罩'],
     specs: [
       { label: '尺寸', value: '150x200 公分 (雙人)' },
@@ -108,7 +108,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 6990,
     description: '中價位獨立筒床墊，單人尺寸，適合學生或單身貴族。',
-    image: '/src/assets/images/mattress_single.jpg',
+    image: '/images/mattress_single.jpg',
     details: ['適合單人使用', '獨立筒減少干擾', '偏硬支撐'],
     specs: [
       { label: '尺寸', value: '90x200 公分 (單人)' },
@@ -127,7 +127,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 3490,
     description: '入門款泡棉床墊，適合預算有限的小資族。',
-    image: '/src/assets/images/mattress_single.jpg',
+    image: '/images/mattress_single.jpg',
     details: ['經濟實惠', '輕量好搬運', '適合客房使用'],
     specs: [
       { label: '尺寸', value: '90x200 公分 (單人)' },
@@ -146,7 +146,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 18900,
     description: '頂級乳膠加獨立筒組合，雙人尺寸的極致睡眠。',
-    image: '/src/assets/images/mattress_closeup.jpg',
+    image: '/images/mattress_closeup.jpg',
     details: ['頂級配置', '天然乳膠', '零干擾獨立筒'],
     specs: [
       { label: '尺寸', value: '150x200 公分 (雙人)' },
@@ -165,7 +165,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 8900,
     description: '這張獨立筒彈簧床墊能為身體提供絕佳支撐，讓你整晚舒心好眠。',
-    image: '/src/assets/images/mattress_double_1779274923685.png',
+    image: '/images/mattress_double_1779274923685.png',
     details: [
       '適合雙人使用',
       '偏硬支撐',
@@ -191,7 +191,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 9900,
     description: '記憶棉材質完美貼合身型，釋放壓力點。',
-    image: '/src/assets/images/mattress_closeup.jpg',
+    image: '/images/mattress_closeup.jpg',
     details: ['記憶棉貼合身型', '釋放肩頸壓力', '適合側睡者'],
     specs: [
       { label: '尺寸', value: '180x200 公分 (雙人加大)' },
@@ -210,7 +210,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 13900,
     description: '進階款獨立筒床墊，雙人加大尺寸，軟硬適中。',
-    image: '/src/assets/images/mattress_double_new.jpg',
+    image: '/images/mattress_double_new.jpg',
     details: ['進階舒適', '加大尺寸', '透氣設計'],
     specs: [
       { label: '尺寸', value: '180x200 公分 (雙人加大)' },
@@ -229,7 +229,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'mattress',
     price: 4990,
     description: '中硬度泡棉床墊，單人尺寸，CP值極高。',
-    image: '/src/assets/images/mattress_single.jpg',
+    image: '/images/mattress_single.jpg',
     details: ['CP值首選', '中硬度支撐', '適合學生族群'],
     specs: [
       { label: '尺寸', value: '90x200 公分 (單人)' },
@@ -248,7 +248,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'coffee-tables',
     price: 499,
     description: '輕便且堅固，這款簡約的咖啡桌適合任何空間。',
-    image: '/src/assets/images/coffee_table_wood_1779274939585.png',
+    image: '/images/coffee_table_wood_1779274939585.png',
     details: [
       '適合小客廳',
       '易於組裝',
@@ -275,7 +275,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'coffee-tables',
     price: 399,
     description: '靈巧的設計，桌面可拆下作為托盤使用。',
-    image: '/src/assets/images/side_table_modern_1779274959832.png',
+    image: '/images/side_table_modern_1779274959832.png',
     details: [
       '桌面可作為托盤',
       '現代簡約風格',
@@ -299,7 +299,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'chairs',
     price: 2990,
     description: '經典彎木扶手椅，搭配高彈泡棉墊，舒適又耐看。',
-    image: '/src/assets/images/nordic_chair_white_bg_1779277500873.png',
+    image: '/images/nordic_chair_white_bg_1779277500873.png',
     details: ['彎木框架', '可替換椅墊', '適合客廳閱讀角'],
     specs: [
       { label: '尺寸', value: '68x82x100 公分' },

@@ -63,7 +63,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
       <div className="px-6 mt-4 mb-8" onClick={blockAction}>
         <div className="relative h-48 rounded-3xl overflow-hidden bg-gray-900 group cursor-pointer">
           <img
-            src="/src/assets/images/living_room_inspiration_1779274975609.png"
+            src="/images/living_room_inspiration_1779274975609.png"
             alt="Promotion"
             className="w-full h-full object-cover opacity-70 group-hover:scale-105 transition-transform duration-700"
           />
@@ -84,9 +84,9 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
         </div>
         <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6">
           {[
-            { title: '小坪數收納', img: '/src/assets/images/living_room_inspiration_1779274975609.png' },
-            { title: '極簡臥室', img: '/src/assets/images/bedroom_inspiration_1779274993139.png' },
-            { title: '木質風格', img: '/src/assets/images/coffee_table_wood_1779274939585.png' },
+            { title: '小坪數收納', img: '/images/living_room_inspiration_1779274975609.png' },
+            { title: '極簡臥室', img: '/images/bedroom_inspiration_1779274993139.png' },
+            { title: '木質風格', img: '/images/coffee_table_wood_1779274939585.png' },
           ].map((item, idx) => (
             <div key={idx} className="flex-shrink-0 w-40 group cursor-pointer" onClick={blockAction}>
               <div className="aspect-[4/5] rounded-2xl overflow-hidden mb-2 bg-gray-100 border border-gray-50">
