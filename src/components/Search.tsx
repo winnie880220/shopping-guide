@@ -10,9 +10,10 @@ import { TaskHint } from './TaskHint';
 interface SearchProps {
   setView: (view: ViewState) => void;
   initialQuery?: string;
+  returnTo?: ViewState;
 }
 
-export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) => {
+export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', returnTo }) => {
   const [query, setQuery] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
   const { tryAction, canAction } = useStudy();
@@ -80,7 +81,7 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '' }) =>
       <div className="p-4 flex items-center gap-3 border-b border-gray-100">
         <GuardedButton
           action="back-search"
-          onAllowedClick={() => setView({ type: 'HOME' })}
+          onAllowedClick={() => setView(returnTo ?? { type: 'HOME' })}
           className={`p-1 ${!canAction('back-search') ? 'opacity-35' : ''}`}
         >
           <ArrowLeft size={24} />

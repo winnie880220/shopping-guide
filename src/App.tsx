@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ViewState, CartItem } from './types';
 import { Navigation } from './components/Navigation';
 import { Home } from './components/Home';
@@ -25,6 +25,26 @@ import { StudyCompleteScreen } from './components/StudyCompleteScreen';
 export default function App() {
   const [view, setView] = useState<ViewState>({ type: 'HOME' });
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  const navigate = useCallback((next: ViewState) => {
+    setView((current) => {
+      if (next.type === 'SEARCH' && next.returnTo == null) {
+        return { ...next, returnTo: current };
+      }
+      if (next.type === 'CART') {
+        if (next.returnTo != null) return next;
+        if (current.type === 'CHECKOUT') {
+          return { type: 'CART', returnTo: current.returnTo };
+        }
+        if (current.type === 'CART') return next;
+        return { ...next, returnTo: current };
+      }
+      if (next.type === 'CHECKOUT' && current.type === 'CART') {
+        return { type: 'CHECKOUT', returnTo: current.returnTo };
+      }
+      return next;
+    });
+  }, []);
   const {
     toast,
     isStudyBriefingVisible,
@@ -62,57 +82,39 @@ export default function App() {
   const renderView = () => {
     switch (view.type) {
       case 'HOME':
-        return <Home setView={setView} addToCart={addToCart} />;
+        return <Home setView={navigate} addToCart={addToCart} />;
       case 'SEARCH':
-        return <Search setView={setView} initialQuery={view.query} />;
+        return (
+          <Search
+            setView={navigate}
+            initialQuery={view.query}
+            returnTo={view.returnTo}
+          />
+        );
       case 'CATEGORY_LIST':
-        return <CategoryList setView={setView} />;
+        return <CategoryList setView={navigate} />;
       case 'PRODUCT_LIST':
-        return (
-          <ProductList
-            categoryId={view.categoryId}
-            setView={setView}
-            addToCart={addToCart}
-            aiSummary={view.aiSummary}
-            initialFilters={view.filters}
-            searchQuery={view.searchQuery}
-          />
-        );
+        return null;
       case 'PRODUCT_DETAIL':
-        return (
-          <ProductDetail
-            productId={view.productId}
-            setView={setView}
-            addToCart={addToCart}
-            cartItems={cartItems}
-          />
-        );
+        return null;
       case 'CART':
-        return (
-          <Cart
-            cartItems={cartItems}
-            setCartItems={setCartItems}
-            setView={setView}
-          />
-        );
       case 'CHECKOUT':
-        return (
-          <Checkout
-            cartItems={cartItems}
-            setView={setView}
-            setCartItems={setCartItems}
-          />
-        );
+        return null;
       default:
-        return <Home setView={setView} addToCart={addToCart} />;
+        return <Home setView={navigate} addToCart={addToCart} />;
     }
   };
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const showTaskHint = view.type !== 'SEARCH';
+  const showTaskHint =
+    view.type !== 'SEARCH' &&
+    view.type !== 'PRODUCT_LIST' &&
+    view.type !== 'PRODUCT_DETAIL' &&
+    view.type !== 'CART' &&
+    view.type !== 'CHECKOUT';
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden selection:bg-[#ffda1a]/30">
+    <div className="max-w-md mx-auto min-h-screen bg-white font-sans text-gray-900 overflow-x-clip selection:bg-[#ffda1a]/30">
       <AnimatePresence>
         {taskCompleteOverlay && <TaskComplete />}
         {!taskCompleteOverlay && isStudyBriefingVisible && <StudyBriefing />}
@@ -126,23 +128,54 @@ export default function App() {
           ) : (
             <>
               {showTaskHint && <TaskHint />}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={
-                    view.type +
-                    (view.type === 'PRODUCT_LIST' ? view.categoryId : '') +
-                    (view.type === 'PRODUCT_DETAIL' ? view.productId : '')
-                  }
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.02 }}
-                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  {renderView()}
-                </motion.div>
-              </AnimatePresence>
+              {view.type === 'PRODUCT_LIST' ? (
+                <ProductList
+                  categoryId={view.categoryId}
+                  setView={navigate}
+                  addToCart={addToCart}
+                  aiSummary={view.aiSummary}
+                  initialFilters={view.filters}
+                  searchQuery={view.searchQuery}
+                />
+              ) : view.type === 'PRODUCT_DETAIL' ? (
+                <ProductDetail
+                  productId={view.productId}
+                  setView={navigate}
+                  addToCart={addToCart}
+                  cartItems={cartItems}
+                />
+              ) : view.type === 'CART' ? (
+                <Cart
+                  cartItems={cartItems}
+                  setCartItems={setCartItems}
+                  setView={navigate}
+                  returnTo={view.returnTo}
+                />
+              ) : view.type === 'CHECKOUT' ? (
+                <Checkout
+                  cartItems={cartItems}
+                  setView={navigate}
+                  setCartItems={setCartItems}
+                />
+              ) : (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={
+                      view.type +
+                      (view.type === 'PRODUCT_DETAIL' ? view.productId : '')
+                    }
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ transform: 'none' }}
+                  >
+                    {renderView()}
+                  </motion.div>
+                </AnimatePresence>
+              )}
 
-              <Navigation currentView={view} setView={setView} cartCount={cartCount} />
+              <Navigation currentView={view} setView={navigate} cartCount={cartCount} />
             </>
           )}
         </>

@@ -7,6 +7,9 @@ interface ProductCardProps {
   onOpen: () => void;
   onAddToCart: (e: React.MouseEvent) => void;
   showAiBadge?: boolean;
+  compact?: boolean;
+  /** 與 compact 搭配，用於橫向推薦列等較窄版面 */
+  dense?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -14,11 +17,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onOpen,
   onAddToCart,
   showAiBadge = false,
+  compact = false,
+  dense = false,
 }) => (
   <div className="flex flex-col group">
     <div
       onClick={onOpen}
-      className="aspect-square bg-gray-50 rounded-2xl mb-3 overflow-hidden relative cursor-pointer border border-gray-50"
+      className={`aspect-square bg-gray-50 overflow-hidden relative cursor-pointer border border-gray-50 ${
+        compact
+          ? dense
+            ? 'rounded-lg mb-1.5'
+            : 'rounded-xl mb-2'
+          : 'rounded-2xl mb-3'
+      }`}
     >
       <img
         src={product.image}
@@ -26,8 +37,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
       />
       {product.sizeDisplay && (
-        <div className="absolute bottom-2 right-2">
-          <span className="bg-gray-900/80 backdrop-blur-sm text-[10px] font-bold text-white px-2 py-0.5 rounded-full shadow-sm">
+        <div className={`absolute ${dense ? 'bottom-1 right-1' : 'bottom-2 right-2'}`}>
+          <span
+            className={`bg-gray-900/80 backdrop-blur-sm font-bold text-white rounded-full shadow-sm ${
+              dense ? 'text-[8px] px-1.5 py-px' : 'text-[10px] px-2 py-0.5'
+            }`}
+          >
             {product.sizeDisplay}
           </span>
         </div>
@@ -43,22 +58,40 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       )}
     </div>
-    <div className="px-1">
-      <h3 className="text-[13px] font-semibold leading-tight mb-0.5 truncate text-gray-900">
+    <div className={dense ? 'px-0.5' : 'px-1'}>
+      <h3
+        className={`font-medium leading-tight truncate text-gray-900 ${
+          dense ? 'text-[11px] mb-0.5' : compact ? 'text-[13px] mb-1' : 'text-[13px] mb-1.5'
+        }`}
+      >
         {product.name}
       </h3>
-      <p className="text-[10px] text-gray-400 mb-2 line-clamp-2 leading-snug">{product.description}</p>
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold text-gray-900">
-          NT$ {product.price.toLocaleString()}
+      <div className={`flex items-center justify-between ${dense ? 'gap-1.5' : 'gap-2'}`}>
+        <span className="font-semibold text-gray-900">
+          <span
+            className={
+              dense ? 'text-[10px]' : compact ? 'text-[11px]' : 'text-[12px]'
+            }
+          >
+            NT$
+          </span>{' '}
+          <span
+            className={
+              dense ? 'text-[13px]' : compact ? 'text-[14px]' : 'text-[16px]'
+            }
+          >
+            {product.price.toLocaleString()}
+          </span>
         </span>
         <button
           type="button"
           onClick={onAddToCart}
           aria-label={`將 ${product.name} 加入購物車`}
-          className="bg-gray-900 text-white p-1.5 rounded-lg shadow-sm active:scale-95 transition-transform flex-shrink-0"
+          className={`bg-gray-900 text-white rounded-lg shadow-sm active:scale-95 transition-transform flex-shrink-0 ${
+            dense ? 'p-1' : 'p-1.5'
+          }`}
         >
-          <ShoppingCart size={12} />
+          <ShoppingCart size={dense ? 10 : 12} />
         </button>
       </div>
     </div>

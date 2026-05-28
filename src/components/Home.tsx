@@ -77,7 +77,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
 
       <section className="px-6 mb-10">
         <div className="flex justify-between items-end mb-4">
-          <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 font-sans">情境找靈感</h3>
+          <h3 className="text-base font-black uppercase tracking-widest text-gray-900 font-sans">情境找靈感</h3>
           <button onClick={blockAction} className="text-[10px] text-gray-400 font-bold uppercase flex items-center gap-0.5">
             Explore All <ChevronRight size={12} />
           </button>
@@ -86,13 +86,13 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           {[
             { title: '小坪數收納', img: '/images/living_room_inspiration_1779274975609.png' },
             { title: '極簡臥室', img: '/images/bedroom_inspiration_1779274993139.png' },
-            { title: '木質風格', img: '/images/coffee_table_wood_1779274939585.png' },
+            { title: '木質風格', img: '/images/coffee_table_low_wood.jpg' },
           ].map((item, idx) => (
             <div key={idx} className="flex-shrink-0 w-40 group cursor-pointer" onClick={blockAction}>
               <div className="aspect-[4/5] rounded-2xl overflow-hidden mb-2 bg-gray-100 border border-gray-50">
                 <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.title} />
               </div>
-              <p className="text-[11px] font-bold text-gray-900">{item.title}</p>
+              <p className="text-[13px] font-medium text-gray-900">{item.title}</p>
             </div>
           ))}
         </div>
@@ -111,8 +111,8 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
               }`}>
                 {item.icon}
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-wider ${
-                item.active ? 'text-gray-900' : 'text-gray-300'
+              <span className={`text-xs uppercase tracking-wider ${
+                item.active ? 'text-gray-900 font-black' : 'text-gray-300 font-semibold'
               }`}>
                 {item.name}
               </span>

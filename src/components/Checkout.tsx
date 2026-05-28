@@ -3,6 +3,7 @@ import { ArrowLeft, Check, CheckCircle2, Truck, Store, Info, ShieldCheck } from 
 import { ViewState, CartItem } from '../types';
 import { PRODUCTS } from '../data';
 import { GuardedButton } from './GuardedButton';
+import { TaskHint } from './TaskHint';
 import { useStudy } from '../context/StudyContext';
 
 interface CheckoutProps {
@@ -30,19 +31,23 @@ export const Checkout: React.FC<CheckoutProps> = ({ cartItems, setView }) => {
   const currentCheckoutStep = 1;
 
   return (
-    <div className="bg-[#f5f5f5] pb-40">
-      <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center gap-4">
-        <GuardedButton
-          action="back-cart"
-          onAllowedClick={() => setView({ type: 'CART' })}
-          className={`p-1 ${!canAction('back-cart') ? 'opacity-35' : ''}`}
-        >
-          <ArrowLeft size={24} />
-        </GuardedButton>
-        <h2 className="text-xl font-bold">結帳</h2>
-      </div>
+    <>
+      <TaskHint sticky={false} />
+      <div className="bg-[#f5f5f5] pb-40">
+        <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+          <div className="px-4 py-3 flex items-center gap-4">
+            <GuardedButton
+              action="back-cart"
+              onAllowedClick={() => setView({ type: 'CART' })}
+              className={`p-1 ${!canAction('back-cart') ? 'opacity-35' : ''}`}
+            >
+              <ArrowLeft size={24} />
+            </GuardedButton>
+            <h2 className="text-xl font-bold">結帳</h2>
+          </div>
+        </header>
 
-      <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4">
         <div className="bg-white px-4 py-3 rounded-lg border border-gray-100">
           <div className="flex justify-between items-center mb-2">
             {checkoutSteps.map((step, idx) => {
@@ -217,6 +222,7 @@ export const Checkout: React.FC<CheckoutProps> = ({ cartItems, setView }) => {
           </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };

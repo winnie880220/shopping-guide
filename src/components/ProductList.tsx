@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowLeft, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
+import { ArrowLeft, SlidersHorizontal, ChevronDown, X, Search } from 'lucide-react';
 import { ProductCard } from './ProductCard';
 import { ViewState } from '../types';
 import { PRODUCTS, CATEGORIES } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
 import { useStudy, TASK_MATTRESS_ID, TASK_TABLE_ID } from '../context/StudyContext';
+import { TaskHint } from './TaskHint';
 
 interface ProductListProps {
   categoryId: string;
@@ -103,29 +104,39 @@ export const ProductList: React.FC<ProductListProps> = ({
   };
 
   return (
-    <div className="bg-[#f5f5f5] min-h-screen pb-24">
-      <div className="sticky top-[88px] bg-white z-10 shadow-sm">
+    <>
+      <TaskHint sticky={false} />
+      <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
         <div className="p-4 flex items-center gap-4">
           <GuardedButton
             action="back-product-list"
             onAllowedClick={() => {
-              if (currentStep === 1) setView({ type: 'SEARCH' });
+              if (currentStep === 1) setView({ type: 'SEARCH', returnTo: { type: 'HOME' } });
               else if (currentStep === 2) setView({ type: 'CATEGORY_LIST' });
               else setView({ type: 'HOME' });
             }}
-            className={`p-1 ${!canAction('back-product-list') ? 'opacity-35' : ''}`}
+            className={`p-1 flex-shrink-0 ${!canAction('back-product-list') ? 'opacity-35' : ''}`}
           >
             <ArrowLeft size={24} />
           </GuardedButton>
-          <div className="flex-1">
-            <h2 className="text-xl font-bold">{searchQuery || category?.name}</h2>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold truncate">{searchQuery || category?.name}</h2>
             <p className="text-[10px] text-gray-500 uppercase tracking-widest px-0.5">
               {products.length} 項商品
             </p>
           </div>
+          <GuardedButton
+            action="open-search"
+            onAllowedClick={() => setView({ type: 'SEARCH' })}
+            aria-label="搜尋商品"
+            className={`p-2 flex-shrink-0 text-gray-500 ${!canAction('open-search') ? 'opacity-35' : ''}`}
+          >
+            <Search size={22} />
+          </GuardedButton>
         </div>
-      </div>
+      </header>
 
+      <div className="bg-[#f5f5f5] min-h-screen pb-24">
       <div className="px-6 pt-6 pb-6 grid grid-cols-2 gap-x-4 gap-y-8">
         {products.map(p => (
           <ProductCard
@@ -161,23 +172,23 @@ export const ProductList: React.FC<ProductListProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowFilters(false)}
-              className="fixed inset-0 bg-black/40 z-50"
+              className="fixed inset-0 bg-black/40 z-[60]"
             />
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 w-[80%] bg-white z-50 shadow-2xl flex flex-col"
+              className="fixed top-0 right-0 bottom-0 w-[80%] bg-white z-[60] shadow-2xl flex flex-col min-h-0"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <h3 className="text-base font-bold text-gray-900">篩選條件</h3>
                 <button onClick={() => setShowFilters(false)} className="p-1 text-gray-400">
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+              <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-gray-100">
                 {/* 風格 */}
                 <div className="px-5">
                   <button onClick={() => setExpandedFilter(expandedFilter === 'style' ? null : 'style')} className="w-full py-4 flex justify-between items-center">
@@ -355,7 +366,7 @@ export const ProductList: React.FC<ProductListProps> = ({
                 </div>
               </div>
 
-              <div className="px-5 py-4 border-t border-gray-100">
+              <div className="mt-auto flex-shrink-0 px-5 pt-4 pb-[4.5rem] border-t border-gray-100 bg-white">
                 <button
                   onClick={() => setShowFilters(false)}
                   className="w-full bg-gray-900 text-white py-3.5 rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
@@ -367,6 +378,7 @@ export const ProductList: React.FC<ProductListProps> = ({
           </>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 };

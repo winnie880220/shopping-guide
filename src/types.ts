@@ -14,7 +14,11 @@ export type Product = {
   image: string;
   details: string[];
   specs: { label: string; value: string }[];
-  stock: { location: string; status: 'in-stock' | 'low-stock' | 'out-of-stock' }[];
+  stock: {
+    location: string;
+    status: 'in-stock' | 'low-stock' | 'out-of-stock';
+    placementArea?: string;
+  }[];
   tags: string[];
   sizeDisplay: string;
   material: string;
@@ -28,7 +32,7 @@ export type CartItem = {
 
 export type ViewState = 
   | { type: 'HOME' }
-  | { type: 'SEARCH'; query?: string }
+  | { type: 'SEARCH'; query?: string; returnTo?: ViewState }
   | { type: 'CATEGORY_LIST' }
   | { type: 'CATEGORY'; categoryId: string }
   | {
@@ -45,5 +49,5 @@ export type ViewState =
       searchQuery?: string;
     }
   | { type: 'PRODUCT_DETAIL'; productId: string }
-  | { type: 'CART' }
-  | { type: 'CHECKOUT' };
+  | { type: 'CART'; returnTo?: ViewState }
+  | { type: 'CHECKOUT'; returnTo?: ViewState };

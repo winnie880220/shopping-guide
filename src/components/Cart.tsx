@@ -1,20 +1,24 @@
 import React, { useEffect } from 'react';
-import { Minus, Plus, Trash2, ArrowRight, Truck, Store, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, Trash2, ArrowRight, Truck, Store, ShoppingCart } from 'lucide-react';
 import { ViewState, CartItem } from '../types';
 import { PRODUCTS } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
+import { ProductCard } from './ProductCard';
+import { TaskHint } from './TaskHint';
 import { useStudy, TASK_MATTRESS_ID } from '../context/StudyContext';
 
 interface CartProps {
   cartItems: CartItem[];
   setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
   setView: (view: ViewState) => void;
+  returnTo?: ViewState;
 }
 
-export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView }) => {
+export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView, returnTo }) => {
   const {
     tryAction,
+    canAction,
     showToast,
     markDeliverySelected,
     completeTaskWithFeedback,
@@ -78,15 +82,27 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView }) 
   };
 
   return (
-    <div className="bg-[#f5f5f5] pb-36">
-      <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-        <h2 className="text-xl font-bold">購物車</h2>
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-          {cartItems.length} 個項目
-        </span>
-      </div>
+    <>
+      <TaskHint sticky={false} />
+      <div className="bg-[#f5f5f5] pb-36">
+        <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
+          <div className="px-4 py-3 flex items-center gap-3">
+            <GuardedButton
+              action="back-from-cart"
+              onAllowedClick={() => setView(returnTo ?? { type: 'HOME' })}
+              className={`p-1 flex-shrink-0 ${!canAction('back-from-cart') ? 'opacity-35' : ''}`}
+              aria-label="返回"
+            >
+              <ArrowLeft size={24} />
+            </GuardedButton>
+            <h2 className="text-xl font-bold flex-1 min-w-0">購物車</h2>
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-widest flex-shrink-0">
+              {cartItems.length} 個項目
+            </span>
+          </div>
+        </header>
 
-      <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4">
         <AnimatePresence initial={false}>
           {cartItems.map(item => {
             const p = getProduct(item.productId);
@@ -231,33 +247,45 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView }) 
           </div>
         )}
 
-        <div className="py-4">
-          <h4 className="font-bold text-sm mb-4">你可能會感興趣</h4>
-          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+        <section className="pt-2 pb-3">
+          <h4 className="font-bold text-sm mb-3">你可能會感興趣</h4>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
             {PRODUCTS.slice(2, 4).map(p => (
-              <div
-                key={p.id}
-                className="w-32 flex-shrink-0 bg-white p-3 rounded-xl shadow-sm cursor-pointer"
-                onClick={() => tryAction('select-home-delivery')}
-              >
-                <img src={p.image} alt={p.name} className="w-full aspect-square object-cover mix-blend-multiply mb-2" />
-                <h5 className="text-[10px] font-bold truncate mb-1">{p.name}</h5>
-                <p className="text-[10px] font-black text-[#0058ab]">NT$ {p.price.toLocaleString()}</p>
+              <div key={p.id} className="w-[6.75rem] flex-shrink-0">
+                <ProductCard
+                  product={p}
+                  compact
+                  dense
+                  onOpen={() => tryAction('select-home-delivery')}
+                  onAddToCart={e => {
+                    e.stopPropagation();
+                    tryAction('select-home-delivery');
+                  }}
+                />
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
 
       {cartItems.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-4 pt-3 pb-[4.75rem] z-20 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]">
           {(currentStep === 4 || deliveryMethod === 'HOME') && (
-            <div className="flex justify-between text-[10px] text-gray-400 mb-2">
-              <span>商品小計 NT$ {subtotal.toLocaleString()}</span>
-              <span>
-                運費{' '}
-                {deliveryMethod === 'HOME' ? `NT$ ${shippingFee.toLocaleString()}` : '—'}
-              </span>
+            <div className="space-y-1 text-[10px] text-gray-400 mb-2">
+              <div className="flex justify-between gap-4">
+                <span>商品小計</span>
+                <span className="tabular-nums">NT$ {subtotal.toLocaleString()}</span>
+              </div>
+              {deliveryMethod != null && (
+                <div className="flex justify-between gap-4">
+                  <span>運費</span>
+                  <span className="tabular-nums">
+                    {deliveryMethod === 'HOME'
+                      ? `NT$ ${shippingFee.toLocaleString()}`
+                      : '免費'}
+                  </span>
+                </div>
+              )}
             </div>
           )}
           <div className="flex items-center justify-between gap-3">
@@ -293,6 +321,7 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView }) 
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };

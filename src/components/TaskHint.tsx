@@ -4,7 +4,12 @@ import { motion } from 'motion/react';
 import { TASK_HINTS } from '../study/taskConfig';
 import { useStudy } from '../context/StudyContext';
 
-export const TaskHint: React.FC = () => {
+interface TaskHintProps {
+  /** 設為 false 時隨頁面捲動離開（用於與下方 sticky header 搭配） */
+  sticky?: boolean;
+}
+
+export const TaskHint: React.FC<TaskHintProps> = ({ sticky = true }) => {
   const { currentStep, isStudyComplete } = useStudy();
   const task = TASK_HINTS[currentStep];
 
@@ -15,7 +20,9 @@ export const TaskHint: React.FC = () => {
       key={currentStep}
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 pt-3 pb-3.5 shadow-[0_1px_8px_rgba(0,0,0,0.03)]"
+      className={`bg-white/95 backdrop-blur-md border-b border-gray-100 px-4 pt-3 pb-3.5 shadow-[0_1px_8px_rgba(0,0,0,0.03)] ${
+        sticky ? 'sticky top-0 z-40' : ''
+      }`}
     >
       {/* 進度條 */}
       <div className="flex gap-1.5 mb-3">

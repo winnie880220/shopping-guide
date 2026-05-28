@@ -37,7 +37,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
       <header className="px-6 pt-6 pb-2 sticky top-[88px] bg-white/80 backdrop-blur-md z-30 flex justify-between items-center">
         <h1 className="text-xl font-black text-gray-900 tracking-tight">商品分類</h1>
         <button
-          onClick={() => tryAction('open-search')}
+          onClick={() => tryAction('open-search', () => setView({ type: 'SEARCH' }))}
           className="p-2 text-gray-400 bg-gray-50 rounded-full"
         >
           <Search size={20} />

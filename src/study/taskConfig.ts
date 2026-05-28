@@ -18,7 +18,8 @@ export type StudyAction =
   | 'back-search'
   | 'back-product-list'
   | 'back-product-detail'
-  | 'back-cart';
+  | 'back-cart'
+  | 'back-from-cart';
 
 export const TASK_MATTRESS_ID = 'm1';
 export const TASK_TABLE_ID = 'c1';
@@ -117,7 +118,7 @@ export const TASK_COMPLETE_MESSAGES: Record<StudyTaskStep, { title: string; subt
 const STEP_ACTIONS: Record<StudyTaskStep, StudyAction[]> = {
   1: ['open-search', 'submit-search', 'add-mattress-to-cart', 'back-search', 'back-product-list'],
   2: ['nav-home', 'nav-category', 'open-coffee-tables', 'open-wood-table', 'back-product-list'],
-  3: ['view-specs', 'check-stock', 'add-table-to-cart', 'nav-cart'],
+  3: ['view-specs', 'check-stock', 'add-table-to-cart', 'nav-cart', 'back-from-cart'],
   4: ['nav-cart', 'select-home-delivery', 'go-checkout'],
   5: ['nav-cart', 'remove-mattress', 'go-checkout', 'back-cart'],
 };

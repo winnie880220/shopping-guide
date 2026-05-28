@@ -1,10 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, Share2, MapPin, ChevronRight, Check, ShoppingCart, Ruler, Minus, Plus } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { ArrowLeft, Heart, Share2, MapPin, ChevronRight, Check, ShoppingCart, Ruler, Minus, Plus, Star } from 'lucide-react';
 import { ViewState, CartItem } from '../types';
 import { PRODUCTS } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
 import { useStudy, TASK_TABLE_ID } from '../context/StudyContext';
+import { TaskHint } from './TaskHint';
+import { ProductCard } from './ProductCard';
+
+const SCENE_PAIRING_CATEGORIES: Record<string, string[]> = {
+  'coffee-tables': ['sofas', 'lighting', 'rugs', 'chairs'],
+  mattress: ['lighting', 'decor', 'storage'],
+  sofas: ['coffee-tables', 'rugs', 'lighting'],
+  chairs: ['coffee-tables', 'lighting', 'desks'],
+  'dining-tables': ['chairs', 'lighting', 'decor'],
+  lighting: ['sofas', 'coffee-tables', 'decor'],
+  desks: ['chairs', 'lighting', 'storage'],
+  storage: ['decor', 'lighting', 'rugs'],
+  rugs: ['sofas', 'coffee-tables', 'lighting'],
+  decor: ['lighting', 'rugs', 'storage'],
+};
 
 interface ProductDetailProps {
   productId: string;
@@ -23,13 +38,33 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   const [showSpecs, setShowSpecs] = useState(false);
   const [showStock, setShowStock] = useState(false);
   const [quantity, setQuantity] = useState(1);
+  const [showStickyHeader, setShowStickyHeader] = useState(false);
+  const imageToolbarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const inCart = cartItems.find(item => item.productId === productId);
     setQuantity(inCart?.quantity ?? 1);
   }, [productId, cartItems]);
+
+  useEffect(() => {
+    const toolbarEl = imageToolbarRef.current;
+    if (!toolbarEl) return;
+
+    const updateHeader = () => {
+      setShowStickyHeader(toolbarEl.getBoundingClientRect().bottom <= 0);
+    };
+
+    updateHeader();
+    window.addEventListener('scroll', updateHeader, { passive: true });
+    window.addEventListener('resize', updateHeader);
+    return () => {
+      window.removeEventListener('scroll', updateHeader);
+      window.removeEventListener('resize', updateHeader);
+    };
+  }, [productId]);
   const {
     tryAction,
+    showToast,
     markSpecsViewed,
     markStockChecked,
     completeTaskWithFeedback,
@@ -38,6 +73,34 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     stockChecked,
     canAction,
   } = useStudy();
+
+  const blockAction = () => {
+    showToast('此功能不在本次任務範圍內，請依上方提示繼續。');
+  };
+
+  const recommendedProducts = useMemo(() => {
+    if (!product) return [];
+    const sameCategory = PRODUCTS.filter(
+      p => p.id !== productId && p.categoryId === product.categoryId
+    );
+    const others = PRODUCTS.filter(
+      p => p.id !== productId && p.categoryId !== product.categoryId
+    );
+    return [...sameCategory, ...others].slice(0, 4);
+  }, [productId, product]);
+
+  const pairingProducts = useMemo(() => {
+    if (!product) return [];
+    const categories =
+      SCENE_PAIRING_CATEGORIES[product.categoryId] ?? ['lighting', 'decor', 'rugs'];
+    let items = PRODUCTS.filter(
+      p => p.id !== productId && categories.includes(p.categoryId)
+    );
+    if (product.categoryId === 'coffee-tables') {
+      items = items.filter(p => p.categoryId === 'sofas');
+    }
+    return items.slice(0, 4);
+  }, [productId, product]);
 
   if (!product) return null;
 
@@ -64,6 +127,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
       });
       return;
     }
+    if (currentStep === 3) {
+      blockAction();
+      return;
+    }
     tryAction('add-table-to-cart');
   };
 
@@ -83,44 +150,125 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     });
   };
 
+  const handleBack = () =>
+    setView({ type: 'PRODUCT_LIST', categoryId: product.categoryId });
+
   return (
     <div className="bg-white min-h-screen pb-44">
-      <div className="absolute top-[88px] left-0 right-0 p-4 flex justify-between items-center z-10 pointer-events-none">
-        <GuardedButton
-          action="back-product-detail"
-          onAllowedClick={() =>
-            setView({ type: 'PRODUCT_LIST', categoryId: product.categoryId })
-          }
-          className={`p-2 bg-white rounded-full shadow-lg pointer-events-auto active:scale-90 ${
-            !canAction('back-product-detail') ? 'opacity-40' : ''
-          }`}
-        >
-          <ArrowLeft size={20} />
-        </GuardedButton>
-        <div className="flex gap-2 pointer-events-auto">
-          <button className="p-2 bg-white rounded-full shadow-lg border border-gray-100" onClick={() => tryAction('view-specs')}>
-            <Share2 size={18} />
-          </button>
-          <button className="p-2 bg-white rounded-full shadow-lg border border-gray-100 text-red-500" onClick={() => tryAction('view-specs')}>
-            <Heart size={18} />
-          </button>
-        </div>
-      </div>
+      <TaskHint sticky={false} />
 
-      <div className="bg-gray-100 aspect-square overflow-hidden mb-6 border-b border-gray-50 mt-[88px]">
+      <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden border-b border-gray-50">
+        <div
+          ref={imageToolbarRef}
+          className="absolute inset-x-0 top-0 p-4 flex justify-between items-center z-10 pointer-events-none"
+        >
+          <GuardedButton
+            action="back-product-detail"
+            onAllowedClick={handleBack}
+            className={`p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg pointer-events-auto active:scale-90 ${
+              !canAction('back-product-detail') ? 'opacity-40' : ''
+            }`}
+          >
+            <ArrowLeft size={20} />
+          </GuardedButton>
+          <div className="flex gap-2 pointer-events-auto">
+            <button
+              type="button"
+              className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-100"
+              onClick={blockAction}
+              aria-label="分享"
+            >
+              <Share2 size={18} />
+            </button>
+            <button
+              type="button"
+              className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-100 text-red-500"
+              onClick={blockAction}
+              aria-label="收藏"
+            >
+              <Heart size={18} />
+            </button>
+          </div>
+        </div>
         <motion.img
-          initial={{ opacity: 0, scale: 1.1 }}
+          initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-cover mix-blend-multiply"
+          className={`w-full h-full object-cover ${
+            productId === 'c1' ? 'object-[center_62%]' : 'object-bottom'
+          }`}
         />
+        <div
+          className="absolute inset-x-0 bottom-3 flex justify-center items-center gap-1.5 z-10 pointer-events-none [&>button]:pointer-events-auto"
+          aria-hidden
+        >
+          {[0, 1, 2, 3].map((index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={blockAction}
+              aria-label={`商品圖片 ${index + 1}`}
+              className={`rounded-full bg-gray-900 transition-all pointer-events-auto ${
+                index === 0 ? 'h-1.5 w-4 opacity-90' : 'h-1.5 w-1.5 opacity-35'
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
-      <div className="px-6">
+      <AnimatePresence>
+        {showStickyHeader && (
+          <motion.header
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="fixed top-0 inset-x-0 z-50"
+          >
+            <div className="max-w-md mx-auto bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+              <div className="px-3 py-2.5 flex items-center gap-2">
+                <GuardedButton
+                  action="back-product-detail"
+                  onAllowedClick={handleBack}
+                  className={`p-1.5 flex-shrink-0 rounded-full active:scale-90 ${
+                    !canAction('back-product-detail') ? 'opacity-40' : ''
+                  }`}
+                  aria-label="返回"
+                >
+                  <ArrowLeft size={22} />
+                </GuardedButton>
+                <h1 className="flex-1 min-w-0 text-sm font-bold text-gray-900 truncate text-center px-1">
+                  {product.name}
+                </h1>
+                <div className="flex gap-0.5 flex-shrink-0">
+                  <button
+                    type="button"
+                    className="p-1.5 rounded-full active:scale-90"
+                    onClick={blockAction}
+                    aria-label="分享"
+                  >
+                    <Share2 size={20} className="text-gray-700" />
+                  </button>
+                  <button
+                    type="button"
+                    className="p-1.5 rounded-full active:scale-90 text-red-500"
+                    onClick={blockAction}
+                    aria-label="收藏"
+                  >
+                    <Heart size={20} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.header>
+        )}
+      </AnimatePresence>
+
+      <div className="px-6 pt-4">
         <div className="mb-6">
           <h2 className="text-xl font-black mb-0.5">{product.name}</h2>
-          <p className="text-gray-400 text-[10px] italic mb-3">{product.description}</p>
+          <p className="text-gray-400 text-[10px] mb-3">{product.description}</p>
           <span className="text-2xl font-black text-[--color-ikea-blue]">
             NT$ {product.price.toLocaleString()}
           </span>
@@ -131,9 +279,9 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             <Check size={14} className="text-green-500" />
             推薦理由
           </h3>
-          <ul className="space-y-3">
+          <ul className="space-y-1.5">
             {product.details.map((detail, idx) => (
-              <li key={idx} className="text-[10px] text-gray-600 flex items-start gap-2 leading-relaxed">
+              <li key={idx} className="text-[10px] text-gray-600 flex items-start gap-2 leading-snug">
                 <div className="mt-1 w-1.5 h-1.5 bg-gray-200 rounded-full flex-shrink-0" />
                 {detail}
               </li>
@@ -175,22 +323,26 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                     const status = stockStatusLabel(store.status);
                     const isOnline = store.location === '網路商店';
                     return (
-                      <div
+                      <button
                         key={store.location}
-                        className="flex justify-between items-start py-1 border-b border-gray-100 last:border-0 last:pb-0"
+                        type="button"
+                        onClick={blockAction}
+                        className="w-full flex justify-between items-start py-1 border-b border-gray-100 last:border-0 last:pb-0 text-left"
                       >
                         <div>
-                          <h4 className="font-bold text-base mb-1.5">{store.location}</h4>
+                          <h4 className="font-semibold text-sm text-gray-900 mb-1.5">{store.location}</h4>
                           <div className="flex items-center gap-2">
                             <div className={`w-2.5 h-2.5 rounded-full ${status.dot}`} />
                             <span className={`text-xs font-bold ${status.color}`}>{status.text}</span>
                           </div>
-                          {!isOnline && store.status === 'in-stock' && (
-                            <p className="text-[10px] text-gray-400 mt-1.5">放置區域: 貨架 12, 走道 04</p>
+                          {!isOnline && store.placementArea && (
+                            <p className="text-[10px] text-gray-400 mt-1.5">
+                              放置區域: {store.placementArea}
+                            </p>
                           )}
                         </div>
-                        <MapPin size={18} className="text-gray-400 mt-1" />
-                      </div>
+                        <MapPin size={18} className="text-gray-400 mt-1 flex-shrink-0" />
+                      </button>
                     );
                   })}
                 </div>
@@ -233,10 +385,61 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             )}
           </AnimatePresence>
 
-          <button className="nest-btn-secondary px-6" onClick={() => tryAction('view-specs')}>
+          <button
+            type="button"
+            className="nest-btn-secondary px-6 flex items-center justify-center gap-2 w-full"
+            onClick={blockAction}
+          >
+            <Star size={14} />
             查看評價與搭配建議
+            <ChevronRight size={14} className="ml-auto" />
           </button>
         </div>
+
+        {recommendedProducts.length > 0 && (
+          <section className="mb-8">
+            <h4 className="font-bold text-sm mb-3">其他推薦產品</h4>
+            <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-1">
+              {recommendedProducts.map(p => (
+                <div key={p.id} className="w-[8.25rem] flex-shrink-0">
+                  <ProductCard
+                    product={p}
+                    compact
+                    onOpen={blockAction}
+                    onAddToCart={e => {
+                      e.stopPropagation();
+                      blockAction();
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {pairingProducts.length > 0 && (
+          <section className="mb-6">
+            <div className="mb-3">
+              <h4 className="font-bold text-sm leading-tight mb-0.5">情境搭配建議</h4>
+              <p className="text-[11px] text-gray-400 leading-snug">與此商品風格相近的空間搭配</p>
+            </div>
+            <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-1">
+              {pairingProducts.map(p => (
+                <div key={p.id} className="w-[8.25rem] flex-shrink-0">
+                  <ProductCard
+                    product={p}
+                    compact
+                    onOpen={blockAction}
+                    onAddToCart={e => {
+                      e.stopPropagation();
+                      blockAction();
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
 
       <div className="fixed bottom-[4.75rem] left-0 right-0 max-w-md mx-auto z-30 bg-white border-t border-gray-100 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
@@ -244,7 +447,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
           <div className="flex items-center bg-gray-100 rounded-xl px-1 flex-shrink-0">
             <button
               type="button"
-              onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              onClick={blockAction}
               className="w-10 h-10 flex items-center justify-center text-gray-600 active:scale-95 transition-transform"
               aria-label="減少數量"
             >
@@ -253,7 +456,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             <span className="text-sm font-bold w-8 text-center tabular-nums">{quantity}</span>
             <button
               type="button"
-              onClick={() => setQuantity(q => Math.min(99, q + 1))}
+              onClick={blockAction}
               className="w-10 h-10 flex items-center justify-center text-gray-600 active:scale-95 transition-transform"
               aria-label="增加數量"
             >
