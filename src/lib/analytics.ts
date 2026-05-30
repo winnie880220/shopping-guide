@@ -22,6 +22,22 @@ function getParticipantId(): string | undefined {
   return sessionStorage.getItem('study-participant-id') ?? undefined;
 }
 
+function ensureGtag() {
+  if (typeof window === 'undefined' || !GA_ID) return false;
+  window.dataLayer = window.dataLayer || [];
+  if (!window.gtag) {
+    window.gtag = function gtag(...args: unknown[]) {
+      window.dataLayer.push(args);
+    };
+  }
+  return true;
+}
+
+function gtagEvent(...args: unknown[]) {
+  if (!ensureGtag()) return;
+  window.gtag(...args);
+}
+
 function baseEventParams(taskStep?: number) {
   return {
     page_path: currentPagePath,
@@ -30,18 +46,25 @@ function baseEventParams(taskStep?: number) {
   };
 }
 
+/** 若 index.html 已注入 gtag，這裡只補 user_id；否則動態載入（本機 dev 備援） */
 export function initGA() {
   if (!GA_ID || initialized || typeof window === 'undefined') return;
+
+  if (window.gtag) {
+    const userId = getParticipantId();
+    if (userId) {
+      window.gtag('config', GA_ID, { user_id: userId });
+    }
+    initialized = true;
+    return;
+  }
 
   const script = document.createElement('script');
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
   document.head.appendChild(script);
 
-  window.dataLayer = window.dataLayer || [];
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer.push(args);
-  };
+  ensureGtag();
   window.gtag('js', new Date());
 
   const userId = getParticipantId();
@@ -92,9 +115,9 @@ export function resolveAnalyticsPath(
 }
 
 export function trackPageView(pagePath: string) {
-  if (!GA_ID || !window.gtag) return;
+  if (!GA_ID) return;
   setCurrentPagePath(pagePath);
-  window.gtag('event', 'page_view', {
+  gtagEvent('event', 'page_view', {
     page_path: pagePath,
     page_title: pagePath,
     ...baseEventParams(),
@@ -103,8 +126,8 @@ export function trackPageView(pagePath: string) {
 
 /** A：主流程有效操作 */
 export function trackStudyAction(action: string, taskStep: StudyTaskStep) {
-  if (!GA_ID || !window.gtag) return;
-  window.gtag('event', 'study_action', {
+  if (!GA_ID) return;
+  gtagEvent('event', 'study_action', {
     action,
     ...baseEventParams(taskStep),
   });
@@ -112,8 +135,8 @@ export function trackStudyAction(action: string, taskStep: StudyTaskStep) {
 
 /** B：任務外／不允許的操作 */
 export function trackStudyOffPath(action: string, taskStep: StudyTaskStep) {
-  if (!GA_ID || !window.gtag) return;
-  window.gtag('event', 'study_off_path', {
+  if (!GA_ID) return;
+  gtagEvent('event', 'study_off_path', {
     action,
     ...baseEventParams(taskStep),
   });
@@ -121,9 +144,13 @@ export function trackStudyOffPath(action: string, taskStep: StudyTaskStep) {
 
 /** 任務完成 */
 export function trackTaskComplete(taskStep: StudyTaskStep, durationSec: number) {
-  if (!GA_ID || !window.gtag) return;
-  window.gtag('event', 'task_complete', {
+  if (!GA_ID) return;
+  gtagEvent('event', 'task_complete', {
     ...baseEventParams(taskStep),
     duration_sec: Math.round(durationSec * 10) / 10,
   });
+}
+
+export function getGaMeasurementId() {
+  return GA_ID ?? null;
 }
