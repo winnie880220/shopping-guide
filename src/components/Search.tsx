@@ -89,12 +89,17 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', retu
         </GuardedButton>
         <form onSubmit={handleSearch} className="flex-1 relative">
           <input
-            type="text"
+            type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜尋"
             autoFocus
-            className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-10 text-[16px] focus:outline-none focus:ring-2 focus:ring-gray-900"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            style={{ fontSize: 16 }}
+            className="w-full bg-gray-100 rounded-full py-2.5 pl-10 pr-10 leading-normal focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
           <SearchIcon className="absolute left-3 top-2.5 text-gray-400" size={18} />
           {isLoading ? (

@@ -35,6 +35,14 @@
   }
 }
 
+/* iOS Safari：聚焦輸入框時若字級小於 16px 會強制放大頁面 */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+  touch-action: manipulation;
+}
+
 /* Global scrollbar */
 * {
   scrollbar-width: thin;
