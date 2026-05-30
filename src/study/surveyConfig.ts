@@ -1,14 +1,15 @@
 /** SurveyCake 問卷網址；可於 .env.local 以 VITE_SURVEYCAKE_URL 覆寫 */
-const DEFAULT_SURVEY_URL = 'https://www.surveycake.com/s/W2N7y';
+const DEFAULT_SURVEY_URL = 'https://www.surveycake.com/s/wqpxM';
 const SURVEYCAKE_BASE =
   import.meta.env.VITE_SURVEYCAKE_URL?.trim() || DEFAULT_SURVEY_URL;
 
 /**
- * SurveyCake「受測者編號」欄位的隱藏題 hash。
- * 在 SurveyCake 後台新增一個「隱藏題」，取得其 hash 後填入此處。
- * URL 會變成: https://www.surveycake.com/s/W2N7y?svq_1=UserID值
+ * 第一題「受測者編號」在 SurveyCake 後台設定的「別名」。
+ * 後台：單行文字題 → 進階 → 別名與預設值 → 別名填 participant_id
+ * 網址會變成: https://www.surveycake.com/s/wqpxM?participant_id=P-xxx
  */
-const SURVEYCAKE_USERID_PARAM = 'svq_1';
+const SURVEYCAKE_USERID_PARAM =
+  import.meta.env.VITE_SURVEYCAKE_USERID_PARAM?.trim() || 'participant_id';
 
 export function getSurveyCakeUrl(userId?: string): string | null {
   if (!SURVEYCAKE_BASE) return null;
