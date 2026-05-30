@@ -8,6 +8,11 @@ import {
   isActionAllowed,
   OFF_PATH_TOAST_VARIANTS,
 } from '../study/taskConfig';
+import {
+  trackStudyAction,
+  trackStudyOffPath,
+  trackTaskComplete,
+} from '../lib/analytics';
 
 function generateParticipantId(): string {
   const stored = sessionStorage.getItem('study-participant-id');
@@ -134,11 +139,14 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const completeTask = useCallback((step: StudyTaskStep, afterNextIntro?: () => void) => {
+    let durationSec = 0;
     if (taskStartTimeRef.current) {
       const durationMs = Date.now() - taskStartTimeRef.current;
       taskDurationsRef.current[step] = durationMs;
+      durationSec = durationMs / 1000;
       taskStartTimeRef.current = null;
     }
+    trackTaskComplete(step, durationSec);
     if (step === 5) {
       logAllTasksToNotion(participantIdRef.current, taskDurationsRef.current);
     }
@@ -200,15 +208,17 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
   const tryAction = useCallback(
     (action: StudyAction, onAllowed?: () => void) => {
       if (!canAction(action)) {
+        trackStudyOffPath(action, currentStep);
         const variant =
           OFF_PATH_TOAST_VARIANTS[Math.floor(Math.random() * OFF_PATH_TOAST_VARIANTS.length)];
         showToast(variant);
         return false;
       }
+      trackStudyAction(action, currentStep);
       onAllowed?.();
       return true;
     },
-    [canAction, showToast]
+    [canAction, currentStep, showToast]
   );
 
   const value = useMemo(
