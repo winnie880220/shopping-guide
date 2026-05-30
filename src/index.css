@@ -17,10 +17,21 @@
 }
 
 @layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     @apply bg-[--color-app-bg] text-[--color-app-text];
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 

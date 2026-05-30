@@ -94,7 +94,7 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', retu
             onChange={(e) => setQuery(e.target.value)}
             placeholder="搜尋"
             autoFocus
-            className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-10 text-[16px] focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
           <SearchIcon className="absolute left-3 top-2.5 text-gray-400" size={18} />
           {isLoading ? (
