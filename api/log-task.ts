@@ -23,11 +23,20 @@ function cleanEnv(value?: string): string {
 }
 
 function notionErrorMessage(error: unknown): string | undefined {
+  if (error instanceof Error && error.message) return error.message;
   if (error && typeof error === 'object' && 'body' in error) {
-    const body = (error as { body?: { message?: string } }).body;
-    return body?.message;
+    const raw = (error as { body?: unknown }).body;
+    if (typeof raw === 'string') {
+      try {
+        return (JSON.parse(raw) as { message?: string }).message;
+      } catch {
+        return raw;
+      }
+    }
+    if (raw && typeof raw === 'object' && 'message' in raw) {
+      return (raw as { message?: string }).message;
+    }
   }
-  if (error instanceof Error) return error.message;
   return undefined;
 }
 
