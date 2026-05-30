@@ -17,13 +17,27 @@ type ApiResponse = {
   status: (code: number) => { json: (body: unknown) => void };
 };
 
+function cleanEnv(value?: string): string {
+  if (!value) return '';
+  return value.trim().replace(/^["']|["']$/g, '');
+}
+
+function notionErrorMessage(error: unknown): string | undefined {
+  if (error && typeof error === 'object' && 'body' in error) {
+    const body = (error as { body?: { message?: string } }).body;
+    return body?.message;
+  }
+  if (error instanceof Error) return error.message;
+  return undefined;
+}
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const notionKey = process.env.NOTION_API_KEY;
-  const databaseId = process.env.NOTION_DATABASE_ID;
+  const notionKey = cleanEnv(process.env.NOTION_API_KEY);
+  const databaseId = cleanEnv(process.env.NOTION_DATABASE_ID);
 
   if (!notionKey || !databaseId) {
     return res.status(500).json({ error: 'Notion is not configured' });
@@ -52,6 +66,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Notion Error:', error);
-    return res.status(500).json({ error: 'Failed to log task to Notion' });
+    return res.status(500).json({
+      error: 'Failed to log task to Notion',
+      detail: notionErrorMessage(error),
+    });
   }
 }
