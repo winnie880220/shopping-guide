@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, ClipboardList, Clock, ShieldCheck, Sparkles } from 'lucide-react';
 import { STUDY_BRIEFING } from '../study/taskConfig';
 import { useStudy } from '../context/StudyContext';
+import { HIGHLIGHT_MARK_CLASS } from './TaskHintText';
 
 export const StudyBriefing: React.FC = () => {
   const { confirmStudyBriefing } = useStudy();
@@ -68,9 +69,11 @@ export const StudyBriefing: React.FC = () => {
                     <span
                       key={segIdx}
                       className={
-                        segment.semibold
-                          ? 'font-semibold text-gray-900'
-                          : undefined
+                        segment.highlight
+                          ? HIGHLIGHT_MARK_CLASS
+                          : segment.semibold
+                            ? 'font-semibold text-gray-900'
+                            : undefined
                       }
                     >
                       {segment.text}

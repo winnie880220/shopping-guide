@@ -1,11 +1,14 @@
-import React from 'react';
-import { Search, Star, Lamp, Bed, Sofa, Square as Table, Footprints as Chair, ChevronRight } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Search, Star, Lamp, Bed, Sofa, ChevronRight } from 'lucide-react';
+import { CoffeeTableIcon } from './icons/CoffeeTableIcon';
+import { OtherFurnitureIcon } from './icons/OtherFurnitureIcon';
 import { ProductCard } from './ProductCard';
 import { ViewState } from '../types';
 import { PRODUCTS } from '../data';
 import { GuardedDiv } from './GuardedButton';
-import { useStudy } from '../context/StudyContext';
-import { TASK_TABLE_ID } from '../study/taskConfig';
+import { useStudy, TASK_TABLE_ID } from '../context/StudyContext';
+
+const POPULAR_CATEGORY_ORDER = ['sofas', 'storage', 'lighting', 'chairs'] as const;
 
 interface HomeProps {
   setView: (view: ViewState) => void;
@@ -13,32 +16,75 @@ interface HomeProps {
 }
 
 export const Home: React.FC<HomeProps> = ({ setView }) => {
-  const { showToast, tryAction, currentStep } = useStudy();
-
-  const blockAction = () => {
-    showToast('此功能不在本次任務範圍內，請依上方提示繼續。');
-  };
+  const { trackOffPathClick, tryAction, currentStep, completeTaskWithFeedback } = useStudy();
+  const [activeCategory, setActiveCategory] = useState<'popular' | 'table'>('popular');
 
   const handleCategoryClick = (itemId: string) => {
-    if (currentStep === 2 && itemId === 'table') {
-      tryAction('open-coffee-tables', () => {
-        setView({ type: 'PRODUCT_LIST', categoryId: 'coffee-tables' });
-      });
+    if (itemId === 'popular') {
+      setActiveCategory('popular');
       return;
     }
-    blockAction();
+    if (itemId === 'table') {
+      if (currentStep === 2) {
+        tryAction(
+          'open-coffee-tables',
+          () => setActiveCategory('table'),
+          { entrySource: 'home_category', buttonLabel: '首頁-茶几/邊几' }
+        );
+      } else {
+        trackOffPathClick(`首頁-分類-${itemId}`);
+      }
+      return;
+    }
+    trackOffPathClick(`首頁-分類-${itemId}`);
+  };
+
+  const handleViewAllTables = () => {
+    tryAction(
+      'open-coffee-tables',
+      () => setView({ type: 'PRODUCT_LIST', categoryId: 'coffee-tables' }),
+      { entrySource: 'home_category', buttonLabel: '首頁-茶几/邊几-查看全部' }
+    );
+  };
+
+  const handleTableProductOpen = (productId: string) => {
+    if (currentStep !== 2) {
+      trackOffPathClick('首頁-茶几/邊几商品卡片');
+      return;
+    }
+    if (productId === TASK_TABLE_ID) {
+      tryAction(
+        'open-wood-table',
+        () => {
+          setView({ type: 'PRODUCT_DETAIL', productId });
+          completeTaskWithFeedback(2, '已開啟商品頁面');
+        },
+        { buttonLabel: '首頁-茶几/邊几-開啟木紋茶几' }
+      );
+    } else {
+      tryAction('open-wood-table', undefined, { buttonLabel: '首頁-茶几/邊几-開啟商品' });
+    }
   };
 
   const customCategories = [
-    { id: 'popular', name: '熱門商品', icon: <Star size={24} fill="currentColor" />, active: true },
-    { id: 'chair', name: '沙發/座椅', icon: <Chair size={24} /> },
-    { id: 'table', name: '茶几/邊几', icon: <Table size={24} /> },
-    { id: 'armchair', name: '單人沙發', icon: <Sofa size={24} /> },
+    { id: 'popular', name: '熱門商品', icon: <Star size={24} fill="currentColor" /> },
+    { id: 'armchair', name: '沙發', icon: <Sofa size={24} /> },
+    { id: 'table', name: '茶几/邊几', icon: <CoffeeTableIcon size={24} /> },
+    { id: 'other', name: '衣櫃/書櫃', icon: <OtherFurnitureIcon size={24} /> },
     { id: 'bed', name: '床墊', icon: <Bed size={24} /> },
     { id: 'lamp', name: '燈具', icon: <Lamp size={24} /> },
   ];
 
-  const popularProducts = PRODUCTS.filter(p => p.id !== TASK_TABLE_ID).slice(0, 4);
+  const popularProducts = POPULAR_CATEGORY_ORDER.map(categoryId =>
+    PRODUCTS.find(p => p.categoryId === categoryId)
+  ).filter((p): p is (typeof PRODUCTS)[number] => p != null);
+
+  const tableProducts = useMemo(
+    () => PRODUCTS.filter(p => p.categoryId === 'coffee-tables').slice(0, 4),
+    []
+  );
+
+  const displayedProducts = activeCategory === 'table' ? tableProducts : popularProducts;
 
   return (
     <div className="pb-28 bg-white min-h-screen">
@@ -54,13 +100,13 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
           <input
             type="text"
             readOnly
-            placeholder="桌子"
-            className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 pl-12 pr-4 text-xs font-medium focus:outline-none cursor-pointer"
+            placeholder="搜尋"
+            className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 pl-12 pr-4 text-sm font-medium focus:outline-none cursor-pointer"
           />
         </GuardedDiv>
       </header>
 
-      <div className="px-6 mt-4 mb-8" onClick={blockAction}>
+      <div className="px-6 mt-4 mb-8" onClick={() => trackOffPathClick('首頁-促銷橫幅')}>
         <div className="relative h-48 rounded-3xl overflow-hidden bg-gray-900 group cursor-pointer">
           <img
             src="/images/living_room_inspiration_1779274975609.png"
@@ -77,8 +123,8 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
 
       <section className="px-6 mb-10">
         <div className="flex justify-between items-end mb-4">
-          <h3 className="text-base font-black uppercase tracking-widest text-gray-900 font-sans">情境找靈感</h3>
-          <button onClick={blockAction} className="text-[10px] text-gray-400 font-bold uppercase flex items-center gap-0.5">
+          <h3 className="text-base font-bold uppercase tracking-widest text-gray-900 font-sans">情境找靈感</h3>
+          <button onClick={() => trackOffPathClick('首頁-Explore All')} className="text-[10px] text-gray-400 font-bold uppercase flex items-center gap-0.5">
             Explore All <ChevronRight size={12} />
           </button>
         </div>
@@ -88,7 +134,7 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
             { title: '極簡臥室', img: '/images/bedroom_inspiration_1779274993139.png' },
             { title: '木質風格', img: '/images/coffee_table_low_wood.jpg' },
           ].map((item, idx) => (
-            <div key={idx} className="flex-shrink-0 w-40 group cursor-pointer" onClick={blockAction}>
+            <div key={idx} className="flex-shrink-0 w-40 group cursor-pointer" onClick={() => trackOffPathClick(`首頁-情境-${item.title}`)}>
               <div className="aspect-[4/5] rounded-2xl overflow-hidden mb-2 bg-gray-100 border border-gray-50">
                 <img src={item.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.title} />
               </div>
@@ -100,41 +146,66 @@ export const Home: React.FC<HomeProps> = ({ setView }) => {
 
       <section className="mb-0 overflow-hidden">
         <div className="px-6 overflow-x-auto no-scrollbar flex gap-6 items-start pb-6">
-          {customCategories.map((item) => (
+          {customCategories.map((item) => {
+            const isActive = activeCategory === 'popular'
+              ? item.id === 'popular'
+              : item.id === activeCategory;
+
+            return (
             <div
               key={item.id}
               className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer"
               onClick={() => handleCategoryClick(item.id)}
             >
               <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all ${
-                item.active ? 'bg-gray-900 text-white shadow-xl shadow-gray-200' : 'bg-gray-50 text-gray-300'
+                isActive ? 'bg-gray-900 text-white shadow-xl shadow-gray-200' : 'bg-gray-50 text-gray-300'
               }`}>
                 {item.icon}
               </div>
-              <span className={`text-xs uppercase tracking-wider ${
-                item.active ? 'text-gray-900 font-black' : 'text-gray-300 font-semibold'
+              <span className={`text-[11px] uppercase tracking-wider ${
+                isActive
+                  ? 'text-gray-900 font-bold'
+                  : 'text-gray-300 font-semibold'
               }`}>
                 {item.name}
               </span>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
       <section className="px-6 mt-4">
         <div className="grid grid-cols-2 gap-x-4 gap-y-8">
-          {popularProducts.map(p => (
+          {displayedProducts.map(p => (
             <ProductCard
               key={p.id}
               product={p}
-              onOpen={blockAction}
+              onOpen={() =>
+                activeCategory === 'table'
+                  ? handleTableProductOpen(p.id)
+                  : trackOffPathClick('首頁-熱門商品卡片')
+              }
               onAddToCart={e => {
                 e.stopPropagation();
-                blockAction();
+                trackOffPathClick(
+                  activeCategory === 'table'
+                    ? '首頁-茶几/邊几-加入購物車'
+                    : '首頁-熱門商品加入購物車'
+                );
               }}
             />
           ))}
         </div>
+        {activeCategory === 'table' && (
+          <button
+            type="button"
+            onClick={handleViewAllTables}
+            className="w-full mt-8 py-3.5 rounded-2xl border-2 border-gray-900 text-gray-900 text-sm font-bold active:scale-[0.98] transition-transform"
+          >
+            查看全部
+          </button>
+        )}
       </section>
     </div>
   );

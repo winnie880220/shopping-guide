@@ -39,14 +39,18 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView, re
 
   const removeItem = (productId: string) => {
     if (productId === TASK_MATTRESS_ID) {
-      tryAction('remove-mattress', () => {
-        setCartItems(prev => prev.filter(item => item.productId !== productId));
-        if (currentStep === 5) {
-          completeTaskWithFeedback(5, '床墊已從購物車移除');
-        }
-      });
+      tryAction(
+        'remove-mattress',
+        () => {
+          setCartItems(prev => prev.filter(item => item.productId !== productId));
+          if (currentStep === 5) {
+            completeTaskWithFeedback(5, '床墊已從購物車移除');
+          }
+        },
+        { buttonLabel: '購物車-移除床墊' }
+      );
     } else {
-      tryAction('remove-mattress');
+      tryAction('remove-mattress', undefined, { buttonLabel: '購物車-移除商品' });
     }
   };
 
@@ -72,19 +76,23 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView, re
 
   const handleSelectDelivery = (method: 'HOME' | 'STORE') => {
     if (method === 'HOME') {
-      tryAction('select-home-delivery', () => {
-        setCartDeliveryMethod('HOME');
-        markDeliverySelected();
-      });
+      tryAction(
+        'select-home-delivery',
+        () => {
+          setCartDeliveryMethod('HOME');
+          markDeliverySelected();
+        },
+        { buttonLabel: '購物車-宅配到府' }
+      );
     } else {
-      tryAction('select-home-delivery');
+      tryAction('select-home-delivery', undefined, { buttonLabel: '購物車-門市取貨' });
     }
   };
 
   return (
     <>
-      <TaskHint sticky={false} />
-      <div className="bg-[#f5f5f5] pb-36">
+      <TaskHint sticky={false} setView={setView} />
+      <div className="bg-white pb-36">
         <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
           <div className="px-4 py-3 flex items-center gap-3">
             <GuardedButton
@@ -148,7 +156,7 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView, re
                         <Plus size={14} />
                       </button>
                     </div>
-                    <span className="font-black text-sm">NT$ {(p.price * item.quantity).toLocaleString()}</span>
+                    <span className="text-sm font-bold text-gray-900">NT$ {(p.price * item.quantity).toLocaleString()}</span>
                   </div>
                 </div>
               </motion.div>
@@ -191,7 +199,7 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView, re
                     <p className="text-[10px] text-gray-500">預計 3-5 個工作天</p>
                   </div>
                 </div>
-                <span className="text-sm font-black text-gray-900">NT$ 500</span>
+                <span className="text-sm font-bold text-gray-900">NT$ 500</span>
               </button>
               <button
                 onClick={() => handleSelectDelivery('STORE')}
@@ -299,6 +307,7 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView, re
             </div>
             <GuardedButton
               action="go-checkout"
+              actionMeta={{ buttonLabel: '購物車-前往結帳' }}
               onAllowedClick={() => {
                 if (currentStep === 4) {
                   if (deliveryMethod !== 'HOME') {

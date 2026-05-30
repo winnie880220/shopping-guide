@@ -22,6 +22,7 @@ import { useStudy } from './context/StudyContext';
 import { AnimatePresence, motion } from 'motion/react';
 import { StudyCompleteScreen } from './components/StudyCompleteScreen';
 import { resolveAnalyticsPath, trackPageView } from './lib/analytics';
+import { PRODUCTS } from './data';
 
 export default function App() {
   const [view, setView] = useState<ViewState>({ type: 'HOME' });
@@ -40,14 +41,22 @@ export default function App() {
         if (current.type === 'CART') return next;
         return { ...next, returnTo: current };
       }
-      if (next.type === 'CHECKOUT' && current.type === 'CART') {
-        return { type: 'CHECKOUT', returnTo: current.returnTo };
+      if (next.type === 'CHECKOUT') {
+        if (next.returnTo != null) return next;
+        return { ...next, returnTo: current };
+      }
+      if (next.type === 'PRODUCT_LIST' && next.returnTo == null) {
+        return { ...next, returnTo: current };
+      }
+      if (next.type === 'PRODUCT_DETAIL' && next.returnTo == null) {
+        return { ...next, returnTo: current };
       }
       return next;
     });
   }, []);
   const {
     toast,
+    showToast,
     isStudyBriefingVisible,
     isTaskIntroVisible,
     taskCompleteOverlay,
@@ -94,6 +103,9 @@ export default function App() {
       }
       return [...prev, { productId, quantity: amount }];
     });
+
+    const product = PRODUCTS.find(p => p.id === productId);
+    showToast(product ? `${product.name} 已加入購物車` : '已加入購物車');
   };
 
   const renderView = () => {
@@ -125,6 +137,7 @@ export default function App() {
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const showTaskHint =
     view.type !== 'SEARCH' &&
+    view.type !== 'CATEGORY_LIST' &&
     view.type !== 'PRODUCT_LIST' &&
     view.type !== 'PRODUCT_DETAIL' &&
     view.type !== 'CART' &&
@@ -144,7 +157,7 @@ export default function App() {
             <StudyCompleteScreen />
           ) : (
             <>
-              {showTaskHint && <TaskHint />}
+              {showTaskHint && <TaskHint setView={navigate} />}
               {view.type === 'PRODUCT_LIST' ? (
                 <ProductList
                   categoryId={view.categoryId}
@@ -153,6 +166,7 @@ export default function App() {
                   aiSummary={view.aiSummary}
                   initialFilters={view.filters}
                   searchQuery={view.searchQuery}
+                  returnTo={view.returnTo}
                 />
               ) : view.type === 'PRODUCT_DETAIL' ? (
                 <ProductDetail
@@ -160,6 +174,7 @@ export default function App() {
                   setView={navigate}
                   addToCart={addToCart}
                   cartItems={cartItems}
+                  returnTo={view.returnTo}
                 />
               ) : view.type === 'CART' ? (
                 <Cart
@@ -173,6 +188,7 @@ export default function App() {
                   cartItems={cartItems}
                   setView={navigate}
                   setCartItems={setCartItems}
+                  returnTo={view.returnTo}
                 />
               ) : (
                 <AnimatePresence mode="wait">

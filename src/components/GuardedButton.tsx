@@ -1,16 +1,18 @@
 import React from 'react';
 import { StudyAction } from '../study/taskConfig';
-import { useStudy } from '../context/StudyContext';
+import { useStudy, type StudyActionMeta } from '../context/StudyContext';
 
 interface GuardedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   action: StudyAction;
   onAllowedClick?: () => void;
+  actionMeta?: StudyActionMeta;
   children: React.ReactNode;
 }
 
 export const GuardedButton: React.FC<GuardedButtonProps> = ({
   action,
   onAllowedClick,
+  actionMeta,
   onClick,
   children,
   className = '',
@@ -29,7 +31,7 @@ export const GuardedButton: React.FC<GuardedButtonProps> = ({
         const allowed = tryAction(action, () => {
           onAllowedClick?.();
           onClick?.(e);
-        });
+        }, actionMeta);
         if (!allowed) {
           e.preventDefault();
           e.stopPropagation();
@@ -45,6 +47,7 @@ interface GuardedDivProps {
   action: StudyAction;
   onAllowedClick?: () => void;
   onClick?: () => void;
+  actionMeta?: StudyActionMeta;
   children: React.ReactNode;
   className?: string;
 }
@@ -53,6 +56,7 @@ export const GuardedDiv: React.FC<GuardedDivProps> = ({
   action,
   onAllowedClick,
   onClick,
+  actionMeta,
   children,
   className = '',
 }) => {
@@ -65,7 +69,7 @@ export const GuardedDiv: React.FC<GuardedDivProps> = ({
         tryAction(action, () => {
           onAllowedClick?.();
           onClick?.();
-        });
+        }, actionMeta);
       }}
     >
       {children}

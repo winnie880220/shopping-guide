@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ArrowLeft, Heart, Share2, MapPin, ChevronRight, Check, ShoppingCart, Ruler, Minus, Plus, Star } from 'lucide-react';
-import { ViewState, CartItem } from '../types';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { ArrowLeft, Heart, Share2, MapPin, ChevronRight, ShoppingCart, Minus, Plus, Star } from 'lucide-react';
+import { ViewState, CartItem, Product } from '../types';
 import { PRODUCTS } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
-import { useStudy, TASK_TABLE_ID } from '../context/StudyContext';
+import { useStudy, TASK_TABLE_ID, TASK_MATTRESS_ID } from '../context/StudyContext';
 import { TaskHint } from './TaskHint';
 import { ProductCard } from './ProductCard';
 
@@ -21,11 +21,29 @@ const SCENE_PAIRING_CATEGORIES: Record<string, string[]> = {
   decor: ['lighting', 'rugs', 'storage'],
 };
 
+const STICKY_HEADER_ESTIMATE = 48;
+
+function getDetailTags(product: Product): string[] {
+  if (product.variantTags?.length) return product.variantTags.slice(0, 2);
+  if (product.sizeDisplay) return [product.sizeDisplay];
+  return [];
+}
+
+function getLongDescription(product: Product): string {
+  const lead = product.description.endsWith('。') ? product.description : `${product.description}。`;
+  const detailText = product.details.length ? `${product.details.join('，')}。` : '';
+  const materialText = product.material
+    ? `材質採用${product.material}，在耐用度與日常保養之間取得良好平衡。`
+    : '';
+  return `${lead}${detailText}${materialText}無論是日常使用或長時間倚靠，都能提供穩定且舒適的體驗；細緻做工與簡約外觀也讓它更容易融入不同風格的居家空間，是兼顧機能與美感的實用選擇。`;
+}
+
 interface ProductDetailProps {
   productId: string;
   setView: (view: ViewState) => void;
   addToCart: (productId: string, quantity?: number, mode?: 'increment' | 'set') => void;
   cartItems: CartItem[];
+  returnTo?: ViewState;
 }
 
 export const ProductDetail: React.FC<ProductDetailProps> = ({
@@ -33,13 +51,31 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
   setView,
   addToCart,
   cartItems,
+  returnTo,
 }) => {
   const product = PRODUCTS.find(p => p.id === productId);
+  const [showDescription, setShowDescription] = useState(true);
   const [showSpecs, setShowSpecs] = useState(false);
   const [showStock, setShowStock] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [showStickyHeader, setShowStickyHeader] = useState(false);
   const imageToolbarRef = useRef<HTMLDivElement>(null);
+  const stickyHeaderRef = useRef<HTMLElement | null>(null);
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const getSectionTop = useCallback((el: HTMLElement) => {
+    return el.getBoundingClientRect().top + window.scrollY;
+  }, []);
+
+  const getStickyHeaderHeight = useCallback(() => {
+    const gallery = sectionRefs.current['section-gallery'];
+    if (!gallery || gallery.getBoundingClientRect().bottom > 0) return 0;
+    return stickyHeaderRef.current?.offsetHeight ?? STICKY_HEADER_ESTIMATE;
+  }, []);
+
+  const getPinnedOffset = useCallback(() => {
+    return getStickyHeaderHeight() + 8;
+  }, [getStickyHeaderHeight]);
 
   useEffect(() => {
     const inCart = cartItems.find(item => item.productId === productId);
@@ -62,9 +98,10 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
       window.removeEventListener('resize', updateHeader);
     };
   }, [productId]);
+
   const {
     tryAction,
-    showToast,
+    trackOffPathClick,
     markSpecsViewed,
     markStockChecked,
     completeTaskWithFeedback,
@@ -73,10 +110,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     stockChecked,
     canAction,
   } = useStudy();
-
-  const blockAction = () => {
-    showToast('此功能不在本次任務範圍內，請依上方提示繼續。');
-  };
 
   const recommendedProducts = useMemo(() => {
     if (!product) return [];
@@ -102,7 +135,34 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     return items.slice(0, 4);
   }, [productId, product]);
 
+  const scrollToSection = useCallback(
+    (sectionId: string) => {
+      if (sectionId === 'section-gallery') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+
+      const el = sectionRefs.current[sectionId];
+      if (!el) return;
+
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const targetTop = Math.max(0, Math.min(getSectionTop(el) - getPinnedOffset(), maxScroll));
+      window.scrollTo({ top: targetTop, behavior: 'smooth' });
+    },
+    [getSectionTop, getPinnedOffset]
+  );
+
+  const setSectionRef = useCallback(
+    (sectionId: string) => (el: HTMLElement | null) => {
+      sectionRefs.current[sectionId] = el;
+    },
+    []
+  );
+
   if (!product) return null;
+
+  const detailTags = getDetailTags(product);
+  const longDescription = getLongDescription(product);
 
   const stockStatusLabel = (status: string) => {
     if (status === 'out-of-stock') return { text: '目前無庫存', color: 'text-red-500', dot: 'bg-red-500' };
@@ -110,54 +170,96 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
     return { text: '現貨供應', color: 'text-green-600', dot: 'bg-green-500' };
   };
 
-  const tableInCart = cartItems.some(item => item.productId === TASK_TABLE_ID);
-
-  const tryFinishTask3 = (nextSpecs: boolean, nextStock: boolean, justAdded = false) => {
-    const inCart = justAdded || tableInCart;
-    if (currentStep === 3 && productId === TASK_TABLE_ID && nextSpecs && nextStock && inCart) {
-      completeTaskWithFeedback(3, '茶几已加入購物車');
+  const tryFinishTask3 = (nextSpecs: boolean, nextStock: boolean) => {
+    if (currentStep === 3 && productId === TASK_TABLE_ID && nextSpecs && nextStock) {
+      completeTaskWithFeedback(3, '已確認規格與庫存');
     }
   };
 
   const handleAddToCart = () => {
-    if (currentStep === 3 && productId === TASK_TABLE_ID) {
-      tryAction('add-table-to-cart', () => {
-        addToCart(productId, quantity, 'set');
-        tryFinishTask3(specsViewed, stockChecked, true);
-      });
+    if (currentStep === 1 && productId === TASK_MATTRESS_ID) {
+      tryAction(
+        'add-mattress-to-cart',
+        () => {
+          addToCart(productId, quantity, 'set');
+          completeTaskWithFeedback(
+            1,
+            `${product.name} 已加入購物車`,
+            () => setView({ type: 'HOME' })
+          );
+        },
+        {
+          entrySource: 'product_detail',
+          buttonLabel: '商品詳情-加入購物車',
+        }
+      );
+      return;
+    }
+    if (currentStep === 1) {
+      tryAction('add-mattress-to-cart', undefined, { buttonLabel: '商品詳情-加入購物車' });
+      return;
+    }
+    if (currentStep === 4 && productId === TASK_TABLE_ID) {
+      tryAction(
+        'add-table-to-cart',
+        () => {
+          addToCart(productId, quantity, 'set');
+        },
+        { buttonLabel: '商品詳情-加入購物車' }
+      );
       return;
     }
     if (currentStep === 3) {
-      blockAction();
+      trackOffPathClick('商品詳情-加入購物車');
       return;
     }
-    tryAction('add-table-to-cart');
+    if (currentStep === 4) {
+      trackOffPathClick('商品詳情-加入購物車');
+      return;
+    }
+    tryAction('add-table-to-cart', undefined, { buttonLabel: '商品詳情-加入購物車' });
   };
 
-  const handleViewSpecs = () => {
-    tryAction('view-specs', () => {
-      setShowSpecs(true);
-      markSpecsViewed();
-      tryFinishTask3(true, stockChecked);
-    });
+  const handleToggleSpecs = () => {
+    if (showSpecs) {
+      setShowSpecs(false);
+      return;
+    }
+    tryAction(
+      'view-specs',
+      () => {
+        setShowSpecs(true);
+        markSpecsViewed();
+        tryFinishTask3(true, stockChecked);
+      },
+      { buttonLabel: '查看產品規格與尺寸' }
+    );
   };
 
   const handleCheckStock = () => {
-    tryAction('check-stock', () => {
-      setShowStock(true);
-      markStockChecked();
-      tryFinishTask3(specsViewed, true);
-    });
+    setShowStock(true);
+    markStockChecked();
+    tryFinishTask3(specsViewed, true);
+    scrollToSection('section-stock');
   };
 
-  const handleBack = () =>
+  const handleBack = () => {
+    if (returnTo) {
+      setView(returnTo);
+      return;
+    }
     setView({ type: 'PRODUCT_LIST', categoryId: product.categoryId });
+  };
 
   return (
     <div className="bg-white min-h-screen pb-44">
-      <TaskHint sticky={false} />
+      <TaskHint sticky={false} setView={setView} />
 
-      <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden border-b border-gray-50">
+      <div
+        id="section-gallery"
+        ref={setSectionRef('section-gallery')}
+        className="relative aspect-[4/3] bg-gray-100 overflow-hidden border-b border-gray-50"
+      >
         <div
           ref={imageToolbarRef}
           className="absolute inset-x-0 top-0 p-4 flex justify-between items-center z-10 pointer-events-none"
@@ -175,16 +277,14 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             <button
               type="button"
               className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-100"
-              onClick={blockAction}
-              aria-label="分享"
+              onClick={() => trackOffPathClick('商品詳情-分享')}
             >
               <Share2 size={18} />
             </button>
             <button
               type="button"
               className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-100 text-red-500"
-              onClick={blockAction}
-              aria-label="收藏"
+              onClick={() => trackOffPathClick('商品詳情-收藏')}
             >
               <Heart size={18} />
             </button>
@@ -196,7 +296,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
           src={product.image}
           alt={product.name}
           className={`w-full h-full object-cover ${
-            productId === 'c1' ? 'object-[center_62%]' : 'object-bottom'
+            productId === 'c1' ? 'object-[center_55%]' : 'object-center'
           }`}
         />
         <div
@@ -207,8 +307,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             <button
               key={index}
               type="button"
-              onClick={blockAction}
-              aria-label={`商品圖片 ${index + 1}`}
+              onClick={() => trackOffPathClick(`商品詳情-商品圖片${index + 1}`)}
               className={`rounded-full bg-gray-900 transition-all pointer-events-auto ${
                 index === 0 ? 'h-1.5 w-4 opacity-90' : 'h-1.5 w-1.5 opacity-35'
               }`}
@@ -220,6 +319,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
       <AnimatePresence>
         {showStickyHeader && (
           <motion.header
+            ref={stickyHeaderRef}
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -245,7 +345,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                   <button
                     type="button"
                     className="p-1.5 rounded-full active:scale-90"
-                    onClick={blockAction}
+                    onClick={() => trackOffPathClick('商品詳情-分享')}
                     aria-label="分享"
                   >
                     <Share2 size={20} className="text-gray-700" />
@@ -253,7 +353,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                   <button
                     type="button"
                     className="p-1.5 rounded-full active:scale-90 text-red-500"
-                    onClick={blockAction}
+                    onClick={() => trackOffPathClick('商品詳情-收藏(置頂列)')}
                     aria-label="收藏"
                   >
                     <Heart size={20} />
@@ -266,33 +366,35 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
       </AnimatePresence>
 
       <div className="px-6 pt-4">
-        <div className="mb-6">
-          <h2 className="text-xl font-black mb-0.5">{product.name}</h2>
-          <p className="text-gray-400 text-[10px] mb-3">{product.description}</p>
-          <span className="text-2xl font-black text-[--color-ikea-blue]">
-            NT$ {product.price.toLocaleString()}
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-gray-900 mb-2">{product.name}</h2>
+          {detailTags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {detailTags.map(tag => (
+                <span
+                  key={tag}
+                  className="inline-block rounded-md bg-[#eef3f8] text-[#6b849c] text-[10px] px-2 py-0.5 font-medium"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          <span className="font-bold text-gray-900">
+            <span className="text-[13px]">NT$</span>{' '}
+            <span className="text-2xl">{product.price.toLocaleString()}</span>
           </span>
         </div>
 
-        <section className="mb-8 nest-card p-5">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3 flex items-center gap-2">
-            <Check size={14} className="text-green-500" />
-            推薦理由
-          </h3>
-          <ul className="space-y-1.5">
-            {product.details.map((detail, idx) => (
-              <li key={idx} className="text-[10px] text-gray-600 flex items-start gap-2 leading-snug">
-                <div className="mt-1 w-1.5 h-1.5 bg-gray-200 rounded-full flex-shrink-0" />
-                {detail}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <section className="mb-8">
+        <section
+          id="section-stock"
+          ref={setSectionRef('section-stock')}
+          className="mb-6"
+        >
           <GuardedButton
             action="check-stock"
             onAllowedClick={handleCheckStock}
+            actionMeta={{ buttonLabel: '查看分店庫存' }}
             className={`w-full p-5 rounded-2xl border-2 flex items-center gap-4 text-left transition-all ${
               showStock ? 'border-gray-900 bg-gray-50/80' : 'border-gray-100 bg-white shadow-sm'
             }`}
@@ -326,8 +428,8 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                       <button
                         key={store.location}
                         type="button"
-                        onClick={blockAction}
-                        className="w-full flex justify-between items-start py-1 border-b border-gray-100 last:border-0 last:pb-0 text-left"
+                        className="w-full flex items-start justify-between gap-3 text-left"
+                        onClick={() => trackOffPathClick(`商品詳情-分店-${store.location}`)}
                       >
                         <div>
                           <h4 className="font-semibold text-sm text-gray-900 mb-1.5">{store.location}</h4>
@@ -351,20 +453,48 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
           </AnimatePresence>
         </section>
 
-        <div className="mb-8 flex flex-col gap-2">
-          <GuardedButton
-            action="view-specs"
-            onAllowedClick={handleViewSpecs}
-            className={`nest-btn-secondary px-6 flex items-center justify-center gap-2 ${
-              showSpecs ? 'border-amber-400 bg-amber-50' : ''
-            }`}
+        <section id="section-description" className="mb-6">
+          <button
+            type="button"
+            onClick={() => setShowDescription(prev => !prev)}
+            className="w-full flex items-center justify-between py-3 border-b border-gray-100"
           >
-            <Ruler size={14} />
-            查看產品規格與尺寸
-            <ChevronRight size={14} className={`ml-auto transition-transform ${showSpecs ? 'rotate-90' : ''}`} />
-          </GuardedButton>
+            <span className="text-sm font-bold text-gray-900">商品說明</span>
+            <ChevronRight
+              size={16}
+              className={`text-gray-400 transition-transform ${showDescription ? 'rotate-90' : ''}`}
+            />
+          </button>
+          <AnimatePresence initial={false}>
+            {showDescription && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <p className="pt-3 text-[13px] text-gray-600 leading-relaxed">
+                  {longDescription}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
 
-          <AnimatePresence>
+        <section id="section-specs" className="mb-8">
+          <button
+            type="button"
+            onClick={handleToggleSpecs}
+            className="w-full flex items-center justify-between py-3 border-b border-gray-100"
+          >
+            <span className="text-sm font-bold text-gray-900">商品規格</span>
+            <ChevronRight
+              size={16}
+              className={`text-gray-400 transition-transform ${showSpecs ? 'rotate-90' : ''}`}
+            />
+          </button>
+
+          <AnimatePresence initial={false}>
             {showSpecs && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
@@ -372,43 +502,63 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">尺寸與規格</p>
+                <div className="pt-3 space-y-2">
                   {product.specs.map(spec => (
-                    <div key={spec.label} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                      <span className="text-[11px] text-gray-500 font-medium">{spec.label}</span>
-                      <span className="text-[11px] font-bold text-gray-900">{spec.value}</span>
+                    <div key={spec.label} className="flex justify-between items-start gap-4 text-[13px] leading-relaxed">
+                      <span className="text-gray-500">{spec.label}</span>
+                      <span className="font-bold text-gray-900 text-right">{spec.value}</span>
                     </div>
                   ))}
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+        </section>
 
-          <button
-            type="button"
-            className="nest-btn-secondary px-6 flex items-center justify-center gap-2 w-full"
-            onClick={blockAction}
-          >
-            <Star size={14} />
-            查看評價與搭配建議
-            <ChevronRight size={14} className="ml-auto" />
-          </button>
-        </div>
+        <section id="section-reviews" className="mb-8">
+          <h4 className="font-bold text-sm mb-3">商品評價</h4>
+          <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-0.5 text-amber-500">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} size={14} fill={i <= 4 ? 'currentColor' : 'none'} />
+                ))}
+              </div>
+              <span className="text-sm font-bold text-gray-900">4.6</span>
+              <span className="text-[11px] text-gray-400">（128 則評價）</span>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-[12px] font-bold text-gray-900 mb-1">支撐感很好，睡眠品質有提升</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">
+                  使用一週後翻身時較不易干擾到另一側，整體睡感符合期待，配送與組裝流程也很順暢。
+                </p>
+              </div>
+              <div>
+                <p className="text-[12px] font-bold text-gray-900 mb-1">外觀簡潔，與臥室風格很搭</p>
+                <p className="text-[11px] text-gray-500 leading-relaxed">
+                  材質觸感不錯，細節做工穩定，若需要偏硬一點的床墊會是很值得考慮的選項。
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        {recommendedProducts.length > 0 && (
-          <section className="mb-8">
-            <h4 className="font-bold text-sm mb-3">其他推薦產品</h4>
+        {pairingProducts.length > 0 && (
+          <section id="section-pairing" className="mb-8">
+            <div className="mb-3">
+              <h4 className="font-bold text-sm leading-tight">情境搭配建議</h4>
+            </div>
             <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-1">
-              {recommendedProducts.map(p => (
+              {pairingProducts.map(p => (
                 <div key={p.id} className="w-[8.25rem] flex-shrink-0">
                   <ProductCard
                     product={p}
                     compact
-                    onOpen={blockAction}
+                    onOpen={() => trackOffPathClick('商品詳情-情境搭配商品')}
                     onAddToCart={e => {
                       e.stopPropagation();
-                      blockAction();
+                      trackOffPathClick('商品詳情-情境搭配加入購物車');
                     }}
                   />
                 </div>
@@ -417,22 +567,19 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
           </section>
         )}
 
-        {pairingProducts.length > 0 && (
-          <section className="mb-6">
-            <div className="mb-3">
-              <h4 className="font-bold text-sm leading-tight mb-0.5">情境搭配建議</h4>
-              <p className="text-[11px] text-gray-400 leading-snug">與此商品風格相近的空間搭配</p>
-            </div>
+        {recommendedProducts.length > 0 && (
+          <section id="section-recommended" className="mb-8">
+            <h4 className="font-bold text-sm mb-3">其他推薦產品</h4>
             <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6 pb-1">
-              {pairingProducts.map(p => (
+              {recommendedProducts.map(p => (
                 <div key={p.id} className="w-[8.25rem] flex-shrink-0">
                   <ProductCard
                     product={p}
                     compact
-                    onOpen={blockAction}
+                    onOpen={() => trackOffPathClick('商品詳情-其他推薦商品')}
                     onAddToCart={e => {
                       e.stopPropagation();
-                      blockAction();
+                      trackOffPathClick('商品詳情-其他推薦加入購物車');
                     }}
                   />
                 </div>
@@ -442,12 +589,12 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
         )}
       </div>
 
-      <div className="fixed bottom-[4.75rem] left-0 right-0 max-w-md mx-auto z-30 bg-white border-t border-gray-100 px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="fixed bottom-[4.25rem] left-0 right-0 max-w-md mx-auto z-40 bg-white border-t border-gray-100 px-4 pt-3 pb-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="flex items-center gap-3">
           <div className="flex items-center bg-gray-100 rounded-xl px-1 flex-shrink-0">
             <button
               type="button"
-              onClick={blockAction}
+              onClick={() => trackOffPathClick('商品詳情-減少數量')}
               className="w-10 h-10 flex items-center justify-center text-gray-600 active:scale-95 transition-transform"
               aria-label="減少數量"
             >
@@ -456,7 +603,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
             <span className="text-sm font-bold w-8 text-center tabular-nums">{quantity}</span>
             <button
               type="button"
-              onClick={blockAction}
+              onClick={() => trackOffPathClick('商品詳情-增加數量')}
               className="w-10 h-10 flex items-center justify-center text-gray-600 active:scale-95 transition-transform"
               aria-label="增加數量"
             >

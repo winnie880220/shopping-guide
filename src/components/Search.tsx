@@ -3,7 +3,7 @@ import { Search as SearchIcon, X, ArrowLeft } from 'lucide-react';
 import { ViewState } from '../types';
 import { motion } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
-import { parseMattressSearchQuery } from '../study/taskConfig';
+import { parseMattressSearchQuery, MATTRESS_SEARCH_REQUIRED_TOAST } from '../study/taskConfig';
 import { useStudy } from '../context/StudyContext';
 import { TaskHint } from './TaskHint';
 
@@ -16,14 +16,19 @@ interface SearchProps {
 export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', returnTo }) => {
   const [query, setQuery] = useState(initialQuery);
   const [isLoading, setIsLoading] = useState(false);
-  const { tryAction, canAction } = useStudy();
+  const { tryAction, canAction, showToast } = useStudy();
 
   const handleSearch = async (e: React.FormEvent, directQuery?: string) => {
     e.preventDefault();
     const q = (directQuery ?? query).trim();
     if (!q) return;
 
-    if (!tryAction('submit-search')) return;
+    if (canAction('submit-search') && !parseMattressSearchQuery(q)) {
+      showToast(MATTRESS_SEARCH_REQUIRED_TOAST);
+      return;
+    }
+
+    if (!tryAction('submit-search', undefined, { buttonLabel: '搜尋-提交' })) return;
 
     setIsLoading(true);
     try {
@@ -54,8 +59,6 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', retu
           aiSummary: data.aiSummary,
           searchQuery: q,
         });
-      } else {
-        setView({ type: 'PRODUCT_LIST', categoryId: 'mattress', searchQuery: q });
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -66,8 +69,6 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', retu
           categoryId: fallback.categoryId,
           searchQuery: q,
         });
-      } else {
-        setView({ type: 'PRODUCT_LIST', categoryId: 'mattress', searchQuery: q });
       }
     } finally {
       setIsLoading(false);
@@ -91,9 +92,9 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', retu
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="桌子"
+            placeholder="搜尋"
             autoFocus
-            className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full bg-gray-100 rounded-full py-2 pl-10 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
           <SearchIcon className="absolute left-3 top-2.5 text-gray-400" size={18} />
           {isLoading ? (

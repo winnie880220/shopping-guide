@@ -13,6 +13,14 @@ import {
   trackStudyOffPath,
   trackTaskComplete,
 } from '../lib/analytics';
+import {
+  getTaskCompletionSnapshot,
+  recordJourneyAction,
+  resetJourneyForTask,
+  type StudyActionMeta,
+} from '../lib/studyJourney';
+
+export type { StudyActionMeta };
 
 function generateParticipantId(): string {
   const stored = sessionStorage.getItem('study-participant-id');
@@ -56,7 +64,8 @@ type StudyContextValue = {
   toast: ToastState;
   taskCompleteOverlay: StudyTaskStep | null;
   canAction: (action: StudyAction) => boolean;
-  tryAction: (action: StudyAction, onAllowed?: () => void) => boolean;
+  tryAction: (action: StudyAction, onAllowed?: () => void, meta?: StudyActionMeta) => boolean;
+  trackOffPathClick: (buttonLabel: string) => void;
   showToast: (message: string) => void;
   completeTask: (step: StudyTaskStep, afterNextIntro?: () => void) => void;
   completeTaskWithFeedback: (
@@ -146,7 +155,8 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
       durationSec = durationMs / 1000;
       taskStartTimeRef.current = null;
     }
-    trackTaskComplete(step, durationSec);
+    const journeySnapshot = getTaskCompletionSnapshot(step);
+    trackTaskComplete(step, durationSec, journeySnapshot);
     if (step === 5) {
       logAllTasksToNotion(participantIdRef.current, taskDurationsRef.current);
     }
@@ -176,6 +186,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
 
   const confirmTaskIntro = useCallback(() => {
     setIntroConfirmedSteps(prev => new Set([...prev, currentStep]));
+    resetJourneyForTask(currentStep);
     taskStartTimeRef.current = Date.now();
     const cb = afterNextIntroRef.current;
     afterNextIntroRef.current = null;
@@ -205,16 +216,32 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
     [currentStep, isStudyBriefingVisible, isTaskIntroVisible, taskCompleteOverlay]
   );
 
+  const trackOffPathClick = useCallback(
+    (buttonLabel: string) => {
+      recordJourneyAction(currentStep, 'blocked_click', false, { buttonLabel });
+      trackStudyOffPath('blocked_click', currentStep, { button_label: buttonLabel });
+      showToast('此功能不在本次任務範圍內，請依上方提示繼續。');
+    },
+    [currentStep, showToast]
+  );
+
   const tryAction = useCallback(
-    (action: StudyAction, onAllowed?: () => void) => {
+    (action: StudyAction, onAllowed?: () => void, meta?: StudyActionMeta) => {
+      const eventExtras = {
+        ...(meta?.buttonLabel ? { button_label: meta.buttonLabel } : {}),
+        ...(meta?.entrySource ? { entry_source: meta.entrySource } : {}),
+      };
+
       if (!canAction(action)) {
-        trackStudyOffPath(action, currentStep);
+        recordJourneyAction(currentStep, action, false, meta);
+        trackStudyOffPath(action, currentStep, eventExtras);
         const variant =
           OFF_PATH_TOAST_VARIANTS[Math.floor(Math.random() * OFF_PATH_TOAST_VARIANTS.length)];
         showToast(variant);
         return false;
       }
-      trackStudyAction(action, currentStep);
+      recordJourneyAction(currentStep, action, true, meta);
+      trackStudyAction(action, currentStep, eventExtras);
       onAllowed?.();
       return true;
     },
@@ -235,6 +262,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
       taskCompleteOverlay,
       canAction,
       tryAction,
+      trackOffPathClick,
       showToast,
       completeTask,
       completeTaskWithFeedback,
@@ -262,6 +290,7 @@ export function StudyProvider({ children }: { children: React.ReactNode }) {
       taskCompleteOverlay,
       canAction,
       tryAction,
+      trackOffPathClick,
       showToast,
       completeTask,
       completeTaskWithFeedback,

@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { TASK_HINTS } from '../study/taskConfig';
+import { TASK_HINTS, TASK_INTRO_REMINDER } from '../study/taskConfig';
 import { useStudy } from '../context/StudyContext';
+import { TaskHintText } from './TaskHintText';
 
 export const TaskIntro: React.FC = () => {
   const { currentStep, confirmTaskIntro } = useStudy();
@@ -22,12 +23,16 @@ export const TaskIntro: React.FC = () => {
         <h1 className="text-[26px] font-bold text-gray-900 text-center mb-6 leading-snug">
           {task.title}
         </h1>
-        <p className="text-[17px] text-gray-600 leading-relaxed text-center">
-          {task.hint}
-        </p>
+        <TaskHintText
+          hint={task.hint}
+          className="text-[17px] text-gray-600 leading-relaxed text-center"
+        />
       </div>
 
       <div className="px-6 pb-12 pt-4">
+        <p className="text-[13px] text-gray-500 leading-relaxed text-center mb-4">
+          {TASK_INTRO_REMINDER}
+        </p>
         <button
           onClick={confirmTaskIntro}
           className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold text-[15px] active:scale-[0.98] transition-transform shadow-lg shadow-gray-200"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, ExternalLink } from 'lucide-react';
+import { ClipboardList, ExternalLink } from 'lucide-react';
 import { getSurveyCakeEmbedUrl, getSurveyCakeUrl } from '../study/surveyConfig';
 
 function getParticipantId(): string {
@@ -18,14 +18,16 @@ export const StudyCompleteScreen: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <div className="px-8 pt-16 pb-6 text-center">
-        <CheckCircle2 size={56} className="text-green-500 mb-6 mx-auto" />
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">測試已完成</h1>
+        <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-6 mx-auto">
+          <ClipboardList size={32} strokeWidth={2} />
+        </div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">請接續填寫研究問卷</h1>
         <p className="text-[15px] text-gray-500 leading-relaxed">
-          感謝您的參與，您已完成所有操作任務。
+          您已完成全部操作任務，感謝您的參與。
         </p>
         {surveyUrl && (
           <p className="text-[14px] text-gray-600 leading-relaxed mt-4">
-            誠摯邀請您接續填寫研究問卷（約需 3–5 分鐘），您的意見將有助於我們改進介面設計。
+            請於下方填寫問卷（約 3–5 分鐘），完成後本次測試才算正式結束。您的回饋將有助於我們改進介面設計。
           </p>
         )}
       </div>

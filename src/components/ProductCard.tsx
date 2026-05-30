@@ -2,6 +2,11 @@ import React from 'react';
 import { ShoppingCart } from 'lucide-react';
 import { Product } from '../types';
 
+function getCardTags(product: Product): string[] {
+  if (product.variantTags?.length) return product.variantTags;
+  return product.sizeDisplay ? [product.sizeDisplay] : [];
+}
+
 interface ProductCardProps {
   product: Product;
   onOpen: () => void;
@@ -19,7 +24,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   showAiBadge = false,
   compact = false,
   dense = false,
-}) => (
+}) => {
+  const cardTags = getCardTags(product);
+
+  return (
   <div className="flex flex-col group">
     <div
       onClick={onOpen}
@@ -36,17 +44,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         alt={product.name}
         className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
       />
-      {product.sizeDisplay && (
-        <div className={`absolute ${dense ? 'bottom-1 right-1' : 'bottom-2 right-2'}`}>
-          <span
-            className={`bg-gray-900/80 backdrop-blur-sm font-bold text-white rounded-full shadow-sm ${
-              dense ? 'text-[8px] px-1.5 py-px' : 'text-[10px] px-2 py-0.5'
-            }`}
-          >
-            {product.sizeDisplay}
-          </span>
-        </div>
-      )}
       {showAiBadge && product.aiReason && (
         <div className="absolute bottom-2 left-2 right-2">
           <div className="bg-white/80 backdrop-blur-md px-2 py-1.5 rounded-lg border border-gray-100 shadow-sm">
@@ -66,28 +63,48 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       >
         {product.name}
       </h3>
-      <div className={`flex items-center justify-between ${dense ? 'gap-1.5' : 'gap-2'}`}>
-        <span className="font-semibold text-gray-900">
-          <span
-            className={
-              dense ? 'text-[10px]' : compact ? 'text-[11px]' : 'text-[12px]'
-            }
-          >
-            NT$
-          </span>{' '}
-          <span
-            className={
-              dense ? 'text-[13px]' : compact ? 'text-[14px]' : 'text-[16px]'
-            }
-          >
-            {product.price.toLocaleString()}
+      <div className={`flex items-end ${dense ? 'gap-1.5' : 'gap-2'}`}>
+        <div className="flex-1 min-w-0">
+          <span className="font-semibold text-gray-900 block">
+            <span
+              className={
+                dense ? 'text-[10px]' : compact ? 'text-[11px]' : 'text-[12px]'
+              }
+            >
+              NT$
+            </span>{' '}
+            <span
+              className={
+                dense ? 'text-[13px]' : compact ? 'text-[14px]' : 'text-[16px]'
+              }
+            >
+              {product.price.toLocaleString()}
+            </span>
           </span>
-        </span>
+          {cardTags.length > 0 && (
+            <div
+              className={`flex flex-wrap gap-1 pointer-events-none select-none ${
+                dense ? 'mt-1' : 'mt-1.5'
+              }`}
+            >
+              {cardTags.map(tag => (
+                <span
+                  key={tag}
+                  className={`inline-block rounded-md bg-[#eef3f8] text-[#6b849c] font-medium ${
+                    dense ? 'text-[8px] px-1.5 py-px' : 'text-[10px] px-2 py-0.5'
+                  }`}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           type="button"
           onClick={onAddToCart}
           aria-label={`將 ${product.name} 加入購物車`}
-          className={`bg-gray-900 text-white rounded-lg shadow-sm active:scale-95 transition-transform flex-shrink-0 ${
+          className={`bg-gray-900 text-white rounded-lg shadow-sm active:scale-95 transition-transform flex-shrink-0 self-end ${
             dense ? 'p-1' : 'p-1.5'
           }`}
         >
@@ -96,4 +113,5 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
     </div>
   </div>
-);
+  );
+};

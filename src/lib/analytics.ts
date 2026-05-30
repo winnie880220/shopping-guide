@@ -1,5 +1,6 @@
 import type { ViewState } from '../types';
 import type { StudyTaskStep } from '../study/taskConfig';
+import { recordJourneyPagePath } from './studyJourney';
 
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim();
 
@@ -117,6 +118,7 @@ export function resolveAnalyticsPath(
 export function trackPageView(pagePath: string) {
   if (!GA_ID) return;
   setCurrentPagePath(pagePath);
+  recordJourneyPagePath(pagePath);
   gtagEvent('event', 'page_view', {
     page_path: pagePath,
     page_title: pagePath,
@@ -124,30 +126,47 @@ export function trackPageView(pagePath: string) {
   });
 }
 
+type StudyEventExtras = Record<string, string | number | boolean | undefined>;
+
 /** A：主流程有效操作 */
-export function trackStudyAction(action: string, taskStep: StudyTaskStep) {
+export function trackStudyAction(
+  action: string,
+  taskStep: StudyTaskStep,
+  extras?: StudyEventExtras
+) {
   if (!GA_ID) return;
   gtagEvent('event', 'study_action', {
     action,
     ...baseEventParams(taskStep),
+    ...extras,
   });
 }
 
 /** B：任務外／不允許的操作 */
-export function trackStudyOffPath(action: string, taskStep: StudyTaskStep) {
+export function trackStudyOffPath(
+  action: string,
+  taskStep: StudyTaskStep,
+  extras?: StudyEventExtras
+) {
   if (!GA_ID) return;
   gtagEvent('event', 'study_off_path', {
     action,
     ...baseEventParams(taskStep),
+    ...extras,
   });
 }
 
 /** 任務完成 */
-export function trackTaskComplete(taskStep: StudyTaskStep, durationSec: number) {
+export function trackTaskComplete(
+  taskStep: StudyTaskStep,
+  durationSec: number,
+  extras?: StudyEventExtras
+) {
   if (!GA_ID) return;
   gtagEvent('event', 'task_complete', {
     ...baseEventParams(taskStep),
     duration_sec: Math.round(durationSec * 10) / 10,
+    ...extras,
   });
 }
 

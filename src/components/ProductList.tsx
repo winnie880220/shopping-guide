@@ -6,6 +6,7 @@ import { PRODUCTS, CATEGORIES } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
 import { useStudy, TASK_MATTRESS_ID, TASK_TABLE_ID } from '../context/StudyContext';
+import { recordTask1FilterUsed } from '../lib/studyJourney';
 import { TaskHint } from './TaskHint';
 
 interface ProductListProps {
@@ -20,6 +21,7 @@ interface ProductListProps {
     keywords?: string[];
   };
   searchQuery?: string;
+  returnTo?: ViewState;
 }
 
 export const ProductList: React.FC<ProductListProps> = ({
@@ -29,6 +31,7 @@ export const ProductList: React.FC<ProductListProps> = ({
   aiSummary,
   initialFilters,
   searchQuery,
+  returnTo,
 }) => {
   const category = CATEGORIES.find(c => c.id === categoryId);
   const { tryAction, canAction, completeTaskWithFeedback, currentStep } = useStudy();
@@ -70,51 +73,69 @@ export const ProductList: React.FC<ProductListProps> = ({
   const handleAddToCart = (productId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (currentStep === 1 && productId === TASK_MATTRESS_ID) {
-      tryAction('add-mattress-to-cart', () => {
-        const product = PRODUCTS.find(p => p.id === productId);
-        addToCart(productId);
-        completeTaskWithFeedback(
-          1,
-          `${product?.name ?? '商品'} 已加入購物車`,
-          () => setView({ type: 'HOME' })
-        );
+      tryAction(
+        'add-mattress-to-cart',
+        () => {
+          const product = PRODUCTS.find(p => p.id === productId);
+          addToCart(productId);
+          completeTaskWithFeedback(
+            1,
+            `${product?.name ?? '商品'} 已加入購物車`,
+            () => setView({ type: 'HOME' })
+          );
+        },
+        {
+          entrySource: searchQuery ? 'search_list' : 'browse_list',
+          buttonLabel: '商品列表-加入購物車',
+        }
+      );
+      return;
+    }
+    if (currentStep === 4 && productId === TASK_TABLE_ID) {
+      tryAction('add-table-to-cart', () => addToCart(productId), {
+        buttonLabel: '商品列表-加入購物車',
       });
       return;
     }
-    if (currentStep === 3 && productId === TASK_TABLE_ID) {
-      tryAction('add-table-to-cart', () => addToCart(productId));
-      return;
-    }
-    tryAction('add-mattress-to-cart');
+    tryAction('add-mattress-to-cart', undefined, { buttonLabel: '商品列表-加入購物車' });
   };
 
   const handleProductClick = (productId: string) => {
+    if (currentStep === 1 && categoryId === 'mattress') {
+      tryAction(
+        'open-mattress-detail',
+        () => {
+          setView({
+            type: 'PRODUCT_DETAIL',
+            productId,
+          });
+        },
+        { buttonLabel: '商品列表-開啟商品詳情' }
+      );
+      return;
+    }
     if (currentStep === 2 && categoryId === 'coffee-tables') {
       if (productId === TASK_TABLE_ID) {
         tryAction('open-wood-table', () => {
           setView({ type: 'PRODUCT_DETAIL', productId });
           completeTaskWithFeedback(2, '已開啟商品頁面');
-        });
+        }, { buttonLabel: '商品列表-開啟木紋茶几' });
       } else {
-        tryAction('open-wood-table');
+        tryAction('open-wood-table', undefined, { buttonLabel: '商品列表-開啟商品' });
       }
       return;
     }
-    tryAction('open-wood-table');
+    tryAction('open-wood-table', undefined, { buttonLabel: '商品列表-開啟商品' });
   };
 
   return (
     <>
-      <TaskHint sticky={false} />
+      <TaskHint sticky={false} setView={setView} />
       <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
         <div className="p-4 flex items-center gap-4">
           <GuardedButton
             action="back-product-list"
-            onAllowedClick={() => {
-              if (currentStep === 1) setView({ type: 'SEARCH', returnTo: { type: 'HOME' } });
-              else if (currentStep === 2) setView({ type: 'CATEGORY_LIST' });
-              else setView({ type: 'HOME' });
-            }}
+            onAllowedClick={() => setView(returnTo ?? { type: 'HOME' })}
             className={`p-1 flex-shrink-0 ${!canAction('back-product-list') ? 'opacity-35' : ''}`}
           >
             <ArrowLeft size={24} />
@@ -136,7 +157,7 @@ export const ProductList: React.FC<ProductListProps> = ({
         </div>
       </header>
 
-      <div className="bg-[#f5f5f5] min-h-screen pb-24">
+      <div className="bg-white min-h-screen pb-24">
       <div className="px-6 pt-6 pb-6 grid grid-cols-2 gap-x-4 gap-y-8">
         {products.map(p => (
           <ProductCard
@@ -297,7 +318,7 @@ export const ProductList: React.FC<ProductListProps> = ({
                 {/* 預算 */}
                 <div className="px-5">
                   <button onClick={() => setExpandedFilter(expandedFilter === 'price' ? null : 'price')} className="w-full py-4 flex justify-between items-center">
-                    <span className="text-sm font-bold text-gray-700">預算範圍</span>
+                    <span className="text-sm font-bold text-gray-700">價格區間</span>
                     <ChevronDown size={16} className={`text-gray-400 transition-transform ${expandedFilter === 'price' ? 'rotate-180' : ''}`} />
                   </button>
                   <AnimatePresence>
@@ -368,7 +389,12 @@ export const ProductList: React.FC<ProductListProps> = ({
 
               <div className="mt-auto flex-shrink-0 px-5 pt-4 pb-[4.5rem] border-t border-gray-100 bg-white">
                 <button
-                  onClick={() => setShowFilters(false)}
+                  onClick={() => {
+                    if (currentStep === 1 && categoryId === 'mattress') {
+                      recordTask1FilterUsed();
+                    }
+                    setShowFilters(false);
+                  }}
                   className="w-full bg-gray-900 text-white py-3.5 rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
                 >
                   查看結果（{products.length} 項）

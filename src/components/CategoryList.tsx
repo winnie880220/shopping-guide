@@ -4,6 +4,7 @@ import { CATEGORIES } from '../data';
 import { ViewState } from '../types';
 import { motion } from 'motion/react';
 import { useStudy } from '../context/StudyContext';
+import { TaskHint } from './TaskHint';
 
 const ROOM_FILTERS = ['全部', '客廳', '臥室', '書房', '廚房', '餐廳', '陽台'] as const;
 
@@ -21,12 +22,9 @@ interface CategoryListProps {
 }
 
 export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
-  const { tryAction, showToast } = useStudy();
+  const { tryAction, trackOffPathClick } = useStudy();
   const [activeFilter, setActiveFilter] = useState<string>('全部');
-
-  const blockAction = () => {
-    showToast('此功能不在本次任務範圍內，請依上方提示繼續。');
-  };
+  const [usedRoomFilter, setUsedRoomFilter] = useState(false);
 
   const filteredCategories = activeFilter === '全部'
     ? CATEGORIES
@@ -34,37 +32,54 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
 
   return (
     <div className="pb-32 bg-white min-h-screen">
-      <header className="px-6 pt-6 pb-2 sticky top-[88px] bg-white/80 backdrop-blur-md z-30 flex justify-between items-center">
-        <h1 className="text-xl font-black text-gray-900 tracking-tight">商品分類</h1>
-        <button
-          onClick={() => tryAction('open-search', () => setView({ type: 'SEARCH' }))}
-          className="p-2 text-gray-400 bg-gray-50 rounded-full"
-        >
-          <Search size={20} />
-        </button>
-      </header>
+      <TaskHint sticky={false} setView={setView} />
+      <div className="sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-50">
+        <header className="px-6 pt-6 pb-2 flex justify-between items-center">
+          <h1 className="text-xl font-black text-gray-900 tracking-tight">商品分類</h1>
+          <button
+            onClick={() => tryAction('open-search', () => setView({ type: 'SEARCH' }))}
+            className="p-2 text-gray-400 bg-gray-50 rounded-full"
+          >
+            <Search size={20} />
+          </button>
+        </header>
 
-      <div className="sticky top-[160px] bg-white/80 backdrop-blur-md z-20 pb-4 border-b border-gray-50">
-        <div className="flex overflow-x-auto no-scrollbar px-6 space-x-2">
+        <div className="pb-4">
+          <div className="flex overflow-x-auto no-scrollbar px-6 space-x-2">
           {ROOM_FILTERS.map((filter) => (
             <button
               key={filter}
               onClick={() => {
+                if (filter === '全部') {
+                  if (activeFilter !== '全部') {
+                    setActiveFilter('全部');
+                    setUsedRoomFilter(false);
+                  }
+                  return;
+                }
                 if (filter === '客廳' && activeFilter !== '客廳') {
-                  tryAction('open-coffee-tables', () => setActiveFilter(filter));
-                } else {
-                  blockAction();
+                  tryAction(
+                    'open-coffee-tables',
+                    () => {
+                      setActiveFilter(filter);
+                      setUsedRoomFilter(true);
+                    },
+                    { entrySource: 'category_list_room_filter', buttonLabel: '商品分類-客廳篩選' }
+                  );
+                } else if (filter !== activeFilter) {
+                  trackOffPathClick(`商品分類-空間篩選-${filter}`);
                 }
               }}
-              className={`whitespace-nowrap px-6 py-3 rounded-full text-[11px] font-black tracking-widest transition-all ${
+              className={`whitespace-nowrap px-6 py-3 rounded-full text-[11px] tracking-widest transition-all ${
                 activeFilter === filter
-                  ? 'bg-white border-2 border-gray-900 text-gray-900'
-                  : 'bg-gray-50 border-2 border-transparent text-gray-400'
+                  ? 'bg-white border-2 border-gray-900 text-gray-900 font-bold'
+                  : 'bg-gray-50 border-2 border-transparent text-gray-400 font-semibold'
               }`}
             >
               {filter}
             </button>
           ))}
+          </div>
         </div>
       </div>
 
@@ -80,11 +95,22 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
               transition={{ delay: idx * 0.05 }}
               onClick={() => {
                 if (isWoodTable) {
-                  tryAction('open-coffee-tables', () => {
-                    setView({ type: 'PRODUCT_LIST', categoryId: category.id });
-                  });
+                  tryAction(
+                    'open-coffee-tables',
+                    () => {
+                      setView({ type: 'PRODUCT_LIST', categoryId: category.id });
+                    },
+                    {
+                      entrySource: usedRoomFilter
+                        ? 'category_list_room_filter'
+                        : 'category_list_card',
+                      buttonLabel: usedRoomFilter
+                        ? '商品分類-茶几卡片(客廳篩選後)'
+                        : '商品分類-茶几卡片',
+                    }
+                  );
                 } else {
-                  blockAction();
+                  trackOffPathClick(`商品分類-${category.name}`);
                 }
               }}
               className="flex flex-col group cursor-pointer"
@@ -100,32 +126,13 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
                 </div>
               </div>
               <div className="text-center px-2">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-0.5">
+                <h3 className="text-[13px] font-bold text-gray-900">
                   {category.name}
                 </h3>
-                <p className="text-[9px] text-gray-400 font-medium tracking-tight truncate">
-                  {category.description}
-                </p>
               </div>
             </motion.div>
           );
         })}
-      </div>
-
-      <div className="px-6 mb-8 mt-4">
-        <div className="bg-gray-900 rounded-3xl p-6 relative overflow-hidden">
-          <div className="relative z-10">
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-2 block">
-              Special Collection
-            </span>
-            <h2 className="text-white text-lg font-bold mb-4 tracking-tight">
-              打造專屬你的
-              <br />
-              極簡北歐居家風格
-            </h2>
-          </div>
-          <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
-        </div>
       </div>
     </div>
   );

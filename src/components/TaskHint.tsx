@@ -1,17 +1,25 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { TASK_HINTS } from '../study/taskConfig';
 import { useStudy } from '../context/StudyContext';
+import { ViewState } from '../types';
+import { TaskHintText } from './TaskHintText';
 
 interface TaskHintProps {
   /** 設為 false 時隨頁面捲動離開（用於與下方 sticky header 搭配） */
   sticky?: boolean;
+  setView?: (view: ViewState) => void;
 }
 
-export const TaskHint: React.FC<TaskHintProps> = ({ sticky = true }) => {
-  const { currentStep, isStudyComplete } = useStudy();
+export const TaskHint: React.FC<TaskHintProps> = ({ sticky = true, setView }) => {
+  const { currentStep, isStudyComplete, assistMessage, tryAction, canAction } = useStudy();
   const task = TASK_HINTS[currentStep];
+  const showAssistNav =
+    assistMessage &&
+    setView &&
+    currentStep === 4 &&
+    canAction('nav-cart');
 
   if (isStudyComplete) return null;
 
@@ -51,7 +59,29 @@ export const TaskHint: React.FC<TaskHintProps> = ({ sticky = true }) => {
             </span>
             <span className="text-[10px] font-bold text-gray-300">步驟 {currentStep}/5</span>
           </div>
-          <p className="text-[13px] text-gray-700 leading-relaxed font-medium">{task.hint}</p>
+          <TaskHintText
+            hint={task.hint}
+            className="text-[13px] text-gray-700 leading-relaxed font-medium"
+          />
+          {showAssistNav && (
+            <button
+              type="button"
+              onClick={() =>
+                tryAction(
+                  'nav-cart',
+                  () => setView({ type: 'CART' }),
+                  { entrySource: 'task_hint', buttonLabel: '任務提示-前往購物車' }
+                )
+              }
+              className="mt-2.5 w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 text-xs font-bold active:scale-[0.98] transition-transform"
+            >
+              <span>{assistMessage}</span>
+              <ChevronRight size={16} className="flex-shrink-0" />
+            </button>
+          )}
+          {assistMessage && !showAssistNav && (
+            <p className="mt-2 text-[11px] font-semibold text-amber-600/90">{assistMessage}</p>
+          )}
         </div>
       </div>
     </motion.div>

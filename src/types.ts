@@ -20,6 +20,8 @@ export type Product = {
     placementArea?: string;
   }[];
   tags: string[];
+  /** 商品卡上並排顯示的規格／款式 tag */
+  variantTags?: string[];
   sizeDisplay: string;
   material: string;
   aiReason?: string;
@@ -47,7 +49,8 @@ export type ViewState =
       aiSummary?: string;
       autoFilled?: string[];
       searchQuery?: string;
+      returnTo?: ViewState;
     }
-  | { type: 'PRODUCT_DETAIL'; productId: string }
+  | { type: 'PRODUCT_DETAIL'; productId: string; returnTo?: ViewState }
   | { type: 'CART'; returnTo?: ViewState }
   | { type: 'CHECKOUT'; returnTo?: ViewState };

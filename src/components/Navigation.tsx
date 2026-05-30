@@ -11,7 +11,7 @@ interface NavigationProps {
 }
 
 export const Navigation: React.FC<NavigationProps> = ({ currentView, setView, cartCount }) => {
-  const { tryAction } = useStudy();
+  const { tryAction, trackOffPathClick } = useStudy();
 
   const tabs: {
     id: string;
@@ -29,14 +29,21 @@ export const Navigation: React.FC<NavigationProps> = ({ currentView, setView, ca
 
   const handleTab = (tab: (typeof tabs)[number]) => {
     if (!tab.action) {
-      tryAction('nav-home');
+      trackOffPathClick(`底欄-${tab.label}`);
       return;
     }
-    tryAction(tab.action, () => {
-      if (tab.id === 'HOME') setView({ type: 'HOME' });
-      else if (tab.id === 'CART') setView({ type: 'CART' });
-      else if (tab.id === 'CATEGORY') setView({ type: 'CATEGORY_LIST' });
-    });
+    tryAction(
+      tab.action,
+      () => {
+        if (tab.id === 'HOME') setView({ type: 'HOME' });
+        else if (tab.id === 'CART') setView({ type: 'CART' });
+        else if (tab.id === 'CATEGORY') setView({ type: 'CATEGORY_LIST' });
+      },
+      {
+        buttonLabel: `底欄-${tab.label}`,
+        ...(tab.id === 'CART' ? { entrySource: 'nav_cart_tab' } : {}),
+      }
+    );
   };
 
   const isActive = (tabId: string) =>

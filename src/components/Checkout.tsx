@@ -10,9 +10,10 @@ interface CheckoutProps {
   cartItems: CartItem[];
   setView: (view: ViewState) => void;
   setCartItems: (items: CartItem[]) => void;
+  returnTo?: ViewState;
 }
 
-export const Checkout: React.FC<CheckoutProps> = ({ cartItems, setView }) => {
+export const Checkout: React.FC<CheckoutProps> = ({ cartItems, setView, returnTo }) => {
   const { canAction, tryAction, cartDeliveryMethod } = useStudy();
   const deliveryMethod = cartDeliveryMethod ?? 'HOME';
 
@@ -32,13 +33,14 @@ export const Checkout: React.FC<CheckoutProps> = ({ cartItems, setView }) => {
 
   return (
     <>
-      <TaskHint sticky={false} />
-      <div className="bg-[#f5f5f5] pb-40">
+      <TaskHint sticky={false} setView={setView} />
+      <div className="bg-white pb-40">
         <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
           <div className="px-4 py-3 flex items-center gap-4">
             <GuardedButton
               action="back-cart"
-              onAllowedClick={() => setView({ type: 'CART' })}
+              onAllowedClick={() => setView(returnTo ?? { type: 'CART' })}
+              actionMeta={{ entrySource: 'checkout_back', buttonLabel: '結帳頁-返回購物車' }}
               className={`p-1 ${!canAction('back-cart') ? 'opacity-35' : ''}`}
             >
               <ArrowLeft size={24} />

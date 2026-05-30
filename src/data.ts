@@ -1,5 +1,16 @@
 import { Category, Product } from './types';
 
+const COFFEE_TABLE_IMAGE_WOOD =
+  'https://images.unsplash.com/photo-1461418126083-a84e9ca935de?auto=format&fit=crop&w=800&q=80';
+const COFFEE_TABLE_IMAGE_GLASS =
+  'https://images.unsplash.com/photo-1718049719673-70ee6f6dfa28?auto=format&fit=crop&w=800&q=80';
+const COFFEE_TABLE_IMAGE_MARBLE =
+  'https://images.unsplash.com/photo-1718049719548-f5cea9f78592?auto=format&fit=crop&w=800&q=80';
+const COFFEE_TABLE_IMAGE_TERRAZZO =
+  'https://images.unsplash.com/photo-1714926340157-dd3a67e7b2c4?auto=format&fit=crop&w=800&q=80';
+const COFFEE_TABLE_IMAGE_SIDE =
+  'https://unsplash.com/photos/RVzwpzgiAIg/download?force=true&w=800';
+
 export const CATEGORIES: Category[] = [
   {
     id: 'mattress',
@@ -23,7 +34,7 @@ export const CATEGORIES: Category[] = [
     id: 'coffee-tables',
     name: '茶几與邊桌',
     description: '客廳美學的靈魂角色',
-    image: '/images/coffee_table_low_wood.jpg',
+    image: COFFEE_TABLE_IMAGE_GLASS,
   },
   {
     id: 'dining-tables',
@@ -247,16 +258,16 @@ export const PRODUCTS: Product[] = [
     name: 'LACK 咖啡桌',
     categoryId: 'coffee-tables',
     price: 499,
-    description: '輕便且堅固，這款簡約的咖啡桌適合任何空間。',
-    image: '/images/coffee_table_low_wood.jpg',
+    description: '天然木紋六角桌面，線條簡潔輕便，適合小型客廳空間。',
+    image: COFFEE_TABLE_IMAGE_WOOD,
     details: [
-      '適合小客廳',
+      '天然木紋表面',
+      '六角桌面造型',
       '易於組裝',
-      '極簡設計',
     ],
     specs: [
       { label: '尺寸', value: '90x55 公分' },
-      { label: '材質', value: '纖維板, 壓克力漆' },
+      { label: '材質', value: '木質貼皮' },
     ],
     stock: [
       { location: '網路商店', status: 'in-stock' },
@@ -265,21 +276,22 @@ export const PRODUCTS: Product[] = [
       { location: '桃園店', status: 'out-of-stock', placementArea: '貨架 05, 走道 01' },
     ],
     tags: ['適合小客廳', '熱銷款'],
+    variantTags: ['木紋色'],
     sizeDisplay: '中',
     material: '木質',
-    aiReason: '適合小客廳，桌面耐磨',
+    aiReason: '木紋表面清晰，適合小客廳',
   },
   {
     id: 'c2',
     name: 'GLADOM 托盤桌',
     categoryId: 'coffee-tables',
     price: 399,
-    description: '靈巧的設計，桌面可拆下作為托盤使用。',
+    description: '黑色金屬托盤式邊桌，附下層收納架，桌面可輕鬆搬移。',
     image: '/images/side_table_modern_1779274959832.png',
     details: [
-      '桌面可作為托盤',
-      '現代簡約風格',
-      '多功能用途',
+      '黑色金屬框架',
+      '托盤式桌面',
+      '附下層置物架',
     ],
     specs: [
       { label: '尺寸', value: '45x53 公分' },
@@ -289,9 +301,102 @@ export const PRODUCTS: Product[] = [
       { location: '內湖店', status: 'in-stock' },
     ],
     tags: ['現代簡約', '多功能'],
+    variantTags: ['黑色'],
     sizeDisplay: '小',
     material: '金屬',
-    aiReason: '多功能用途，輕型便利',
+    aiReason: '黑色托盤設計，輕型便利',
+  },
+  {
+    id: 'c4',
+    name: 'KRAGSTA 玻璃茶几',
+    categoryId: 'coffee-tables',
+    price: 6990,
+    description: '方形強化玻璃桌面搭配鍍鉻金屬桌腳，俐落現代不佔視線。',
+    image: COFFEE_TABLE_IMAGE_GLASS,
+    details: [
+      '方形強化玻璃',
+      '鍍鉻金屬桌腳',
+      '適合中型客廳',
+    ],
+    specs: [
+      { label: '尺寸', value: '90x90 公分' },
+      { label: '材質', value: '強化玻璃, 鍍鉻金屬' },
+    ],
+    stock: [{ location: '內湖店', status: 'in-stock' }],
+    tags: ['玻璃', '客廳'],
+    variantTags: ['鍍鉻色'],
+    sizeDisplay: '大',
+    material: '玻璃',
+    aiReason: '方形玻璃台面，空間感通透',
+  },
+  {
+    id: 'c5',
+    name: 'KNARREVIK 邊桌',
+    categoryId: 'coffee-tables',
+    price: 299,
+    description: '黑色大理石與透明玻璃層疊設計，圓形台面兼具質感與穩定。',
+    image: COFFEE_TABLE_IMAGE_MARBLE,
+    details: [
+      '黑色大理石台面',
+      '透明玻璃上層',
+      '圓形小茶几造型',
+    ],
+    specs: [
+      { label: '尺寸', value: 'Ø 55 公分' },
+      { label: '材質', value: '大理石, 強化玻璃' },
+    ],
+    stock: [{ location: '內湖店', status: 'in-stock' }],
+    tags: ['大理石', '邊桌'],
+    variantTags: ['大理石黑'],
+    sizeDisplay: '小',
+    material: '大理石',
+    aiReason: '大理石層疊設計，質感突出',
+  },
+  {
+    id: 'c6',
+    name: 'LÖVBACKEN 邊桌',
+    categoryId: 'coffee-tables',
+    price: 1290,
+    description: '水磨石紋圓桌面搭配金色金屬桌腳，適合沙發旁點綴。',
+    image: COFFEE_TABLE_IMAGE_TERRAZZO,
+    details: [
+      '水磨石紋桌面',
+      '金色金屬桌腳',
+      '圓形小巧造型',
+    ],
+    specs: [
+      { label: '尺寸', value: 'Ø 45 公分' },
+      { label: '材質', value: '水磨石, 金屬' },
+    ],
+    stock: [{ location: '內湖店', status: 'in-stock' }],
+    tags: ['水磨石', '邊桌'],
+    variantTags: ['水磨石'],
+    sizeDisplay: '小',
+    material: '水磨石',
+    aiReason: '水磨石紋路，溫潤又有設計感',
+  },
+  {
+    id: 'c8',
+    name: 'STENKOL 邊桌',
+    categoryId: 'coffee-tables',
+    price: 799,
+    description: '俐落現代邊桌，台面適合放置飲品或書籍，可搭配沙發使用。',
+    image: COFFEE_TABLE_IMAGE_SIDE,
+    details: [
+      '簡約現代造型',
+      '適合沙發旁',
+      '輕巧好移動',
+    ],
+    specs: [
+      { label: '尺寸', value: '40x40 公分' },
+      { label: '材質', value: '金屬, 烤漆' },
+    ],
+    stock: [{ location: '內湖店', status: 'in-stock' }],
+    tags: ['邊桌', '現代'],
+    variantTags: ['黑灰'],
+    sizeDisplay: '小',
+    material: '金屬',
+    aiReason: '簡約造型，適合小坪數空間',
   },
   {
     id: 's1',
@@ -299,7 +404,7 @@ export const PRODUCTS: Product[] = [
     categoryId: 'sofas',
     price: 24900,
     description: '簡約線條與舒適坐感，適合搭配木質茶几打造完整客廳。',
-    image: '/images/sofa_green_living.jpg',
+    image: '/images/living_room_inspiration_1779274975609.png',
     details: ['三人座設計', '可拆洗布套', '北歐休閒風格'],
     specs: [
       { label: '尺寸', value: '204x88x74 公分' },
@@ -321,11 +426,48 @@ export const PRODUCTS: Product[] = [
     details: ['彎木框架', '可替換椅墊', '適合客廳閱讀角'],
     specs: [
       { label: '尺寸', value: '68x82x100 公分' },
-      { label: '材質', value: '彎木、泡棉' },
+      { label: '材質', value: '胡桃木、泡棉' },
     ],
     stock: [{ location: '內湖店', status: 'in-stock' }],
     tags: ['經典款', '客廳'],
-    sizeDisplay: '標準',
-    material: '布料',
+    variantTags: ['胡桃木', '淺木紋'],
+    sizeDisplay: '胡桃木',
+    material: '胡桃木',
+  },
+  {
+    id: 'w1',
+    name: 'PAX 衣櫃組合',
+    categoryId: 'storage',
+    price: 12900,
+    description: '模組化衣櫃設計，可依空間自由組合，整齊收納衣物。',
+    image: '/images/wardrobe_white_closet.jpg',
+    details: ['模組化設計', '大容量收納', '適合臥室與更衣室'],
+    specs: [
+      { label: '尺寸', value: '80–120 公分寬度可選' },
+      { label: '材質', value: '纖維板、三聚氰胺貼面' },
+    ],
+    stock: [{ location: '內湖店', status: 'in-stock' }],
+    tags: ['收納', '臥室'],
+    variantTags: ['120cm', '80cm'],
+    sizeDisplay: '120cm',
+    material: '木質',
+  },
+  {
+    id: 'l1',
+    name: 'HEKTAR 吊燈',
+    categoryId: 'lighting',
+    price: 1490,
+    description: '復古工業風吊燈，溫暖光線營造舒適居家氛圍。',
+    image: '/images/lighting_pendant_lamp.jpg',
+    details: ['工業復古風格', '適合客廳與餐廳', 'E27 燈座'],
+    specs: [
+      { label: '尺寸', value: 'Ø38 公分' },
+      { label: '材質', value: '鋼鐵、環氧粉末塗料' },
+    ],
+    stock: [{ location: '內湖店', status: 'in-stock' }],
+    tags: ['吊燈', '客廳'],
+    variantTags: ['黑色', '白色'],
+    sizeDisplay: '黑色',
+    material: '金屬',
   },
 ];

@@ -9,6 +9,11 @@
   --color-ikea-yellow: #f0f0f0; 
   --color-app-bg: #FFFFFF;
   --color-app-text: #242424;
+
+  /* 全站灰階略加深，提升圖示／輔助文字可讀性 */
+  --color-gray-300: #a3abb4;
+  --color-gray-400: #7c848f;
+  --color-gray-500: #646c77;
 }
 
 @layer base {
