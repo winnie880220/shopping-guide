@@ -11,8 +11,8 @@ export const StudyCompleteScreen: React.FC = () => {
   const surveyUrl = getSurveyCakeUrl(userId);
   const embedUrl = getSurveyCakeEmbedUrl(userId);
 
-  const goToSurvey = () => {
-    if (surveyUrl) window.location.assign(surveyUrl);
+  const openSurveyInNewTab = () => {
+    if (surveyUrl) window.open(surveyUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -32,23 +32,15 @@ export const StudyCompleteScreen: React.FC = () => {
 
       {surveyUrl ? (
         <>
-          <div className="px-6 pb-4 flex flex-col gap-3">
+          <div className="px-6 pb-4">
             <button
               type="button"
-              onClick={goToSurvey}
+              onClick={openSurveyInNewTab}
               className="w-full bg-gray-900 text-white py-4 rounded-2xl text-[15px] font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-lg shadow-gray-200"
             >
-              前往填寫問卷
+              另開新分頁
               <ExternalLink size={18} />
             </button>
-            <a
-              href={surveyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-center text-[13px] text-gray-400 underline underline-offset-2"
-            >
-              另開新分頁填寫
-            </a>
           </div>
           {embedUrl && (
             <div className="flex-1 min-h-0 px-4 pb-6">

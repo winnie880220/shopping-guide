@@ -21,6 +21,7 @@ import { Toast } from './components/Toast';
 import { useStudy } from './context/StudyContext';
 import { AnimatePresence, motion } from 'motion/react';
 import { StudyCompleteScreen } from './components/StudyCompleteScreen';
+import { resolveAnalyticsPath, trackPageView } from './lib/analytics';
 
 export default function App() {
   const [view, setView] = useState<ViewState>({ type: 'HOME' });
@@ -56,6 +57,22 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [view]);
+
+  useEffect(() => {
+    const pagePath = resolveAnalyticsPath(view, {
+      isStudyComplete,
+      isStudyBriefingVisible,
+      isTaskIntroVisible,
+      taskCompleteOverlay,
+    });
+    trackPageView(pagePath);
+  }, [
+    view,
+    isStudyComplete,
+    isStudyBriefingVisible,
+    isTaskIntroVisible,
+    taskCompleteOverlay,
+  ]);
 
   const addToCart = (
     productId: string,
