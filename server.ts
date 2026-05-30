@@ -5,6 +5,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import { Client } from "@notionhq/client";
+import { buildNotionDateProperty } from "./src/lib/notionDate.js";
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
 const NOTION_DB_ID = process.env.NOTION_DATABASE_ID!;
@@ -28,7 +29,7 @@ async function startServer() {
         parent: { database_id: NOTION_DB_ID },
         properties: {
           "UserID": { title: [{ text: { content: userId } }] },
-          "Date": { date: { start: date || new Date().toISOString().split("T")[0] } },
+          "Date": { date: buildNotionDateProperty(date) },
           "task1_sec": { number: task1_sec ?? null },
           "task2_sec": { number: task2_sec ?? null },
           "task3_sec": { number: task3_sec ?? null },

@@ -37,7 +37,7 @@ async function logAllTasksToNotion(userId: string, durations: Record<number, num
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId,
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString(),
         task1_sec: durations[1] != null ? Math.round(durations[1] / 1000 * 10) / 10 : null,
         task2_sec: durations[2] != null ? Math.round(durations[2] / 1000 * 10) / 10 : null,
         task3_sec: durations[3] != null ? Math.round(durations[3] / 1000 * 10) / 10 : null,

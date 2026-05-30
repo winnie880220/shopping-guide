@@ -1,4 +1,5 @@
 import { Client } from '@notionhq/client';
+import { buildNotionDateProperty } from '../src/lib/notionDate.js';
 
 type ApiRequest = {
   method?: string;
@@ -64,7 +65,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       parent: { database_id: databaseId },
       properties: {
         UserID: { title: [{ text: { content: String(userId) } }] },
-        Date: { date: { start: date || new Date().toISOString().split('T')[0] } },
+        Date: { date: buildNotionDateProperty(date) },
         task1_sec: { number: task1_sec ?? null },
         task2_sec: { number: task2_sec ?? null },
         task3_sec: { number: task3_sec ?? null },
