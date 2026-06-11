@@ -5,7 +5,6 @@ import { PRODUCTS } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
 import { ProductCard } from './ProductCard';
-import { TaskHint } from './TaskHint';
 import { useStudy, TASK_MATTRESS_ID } from '../context/StudyContext';
 
 interface CartProps {
@@ -91,7 +90,6 @@ export const Cart: React.FC<CartProps> = ({ cartItems, setCartItems, setView, re
 
   return (
     <>
-      <TaskHint sticky={false} setView={setView} />
       <div className="bg-white pb-36">
         <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
           <div className="px-4 py-3 flex items-center gap-3">

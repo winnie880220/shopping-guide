@@ -7,8 +7,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
 import { useStudy, TASK_MATTRESS_ID, TASK_TABLE_ID } from '../context/StudyContext';
 import { recordTask1FilterUsed } from '../lib/studyJourney';
-import { TaskHint } from './TaskHint';
-
 interface ProductListProps {
   categoryId: string;
   setView: (view: ViewState) => void;
@@ -130,7 +128,6 @@ export const ProductList: React.FC<ProductListProps> = ({
 
   return (
     <>
-      <TaskHint sticky={false} setView={setView} />
       <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
         <div className="p-4 flex items-center gap-4">
           <GuardedButton

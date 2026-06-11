@@ -5,7 +5,6 @@ import { PRODUCTS } from '../data';
 import { motion, AnimatePresence } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
 import { useStudy, TASK_TABLE_ID, TASK_MATTRESS_ID } from '../context/StudyContext';
-import { TaskHint } from './TaskHint';
 import { ProductCard } from './ProductCard';
 
 const SCENE_PAIRING_CATEGORIES: Record<string, string[]> = {
@@ -253,8 +252,6 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({
 
   return (
     <div className="bg-white min-h-screen pb-44">
-      <TaskHint sticky={false} setView={setView} />
-
       <div
         id="section-gallery"
         ref={setSectionRef('section-gallery')}

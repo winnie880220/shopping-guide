@@ -5,8 +5,6 @@ import { motion } from 'motion/react';
 import { GuardedButton } from './GuardedButton';
 import { parseMattressSearchQuery, MATTRESS_SEARCH_REQUIRED_TOAST } from '../study/taskConfig';
 import { useStudy } from '../context/StudyContext';
-import { TaskHint } from './TaskHint';
-
 interface SearchProps {
   setView: (view: ViewState) => void;
   initialQuery?: string;
@@ -77,7 +75,6 @@ export const Search: React.FC<SearchProps> = ({ setView, initialQuery = '', retu
 
   return (
     <div className="bg-white min-h-screen pb-24">
-      <TaskHint />
 
       <div className="p-4 flex items-center gap-3 border-b border-gray-100">
         <GuardedButton

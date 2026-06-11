@@ -13,7 +13,6 @@ import { ProductList } from './components/ProductList';
 import { ProductDetail } from './components/ProductDetail';
 import { Cart } from './components/Cart';
 import { Checkout } from './components/Checkout';
-import { TaskHint } from './components/TaskHint';
 import { StudyBriefing } from './components/StudyBriefing';
 import { TaskIntro } from './components/TaskIntro';
 import { TaskComplete } from './components/TaskComplete';
@@ -135,13 +134,6 @@ export default function App() {
   };
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const showTaskHint =
-    view.type !== 'SEARCH' &&
-    view.type !== 'CATEGORY_LIST' &&
-    view.type !== 'PRODUCT_LIST' &&
-    view.type !== 'PRODUCT_DETAIL' &&
-    view.type !== 'CART' &&
-    view.type !== 'CHECKOUT';
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-white font-sans text-gray-900 overflow-x-clip selection:bg-[#ffda1a]/30">
@@ -157,7 +149,6 @@ export default function App() {
             <StudyCompleteScreen />
           ) : (
             <>
-              {showTaskHint && <TaskHint setView={navigate} />}
               {view.type === 'PRODUCT_LIST' ? (
                 <ProductList
                   categoryId={view.categoryId}
