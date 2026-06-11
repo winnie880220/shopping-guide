@@ -3,6 +3,7 @@ import { ArrowLeft, Check, CheckCircle2, Truck, Store, Info, ShieldCheck } from 
 import { ViewState, CartItem } from '../types';
 import { PRODUCTS } from '../data';
 import { GuardedButton } from './GuardedButton';
+import { TaskHint } from './TaskHint';
 import { useStudy } from '../context/StudyContext';
 
 interface CheckoutProps {
@@ -32,6 +33,7 @@ export const Checkout: React.FC<CheckoutProps> = ({ cartItems, setView, returnTo
 
   return (
     <>
+      <TaskHint sticky={false} setView={setView} />
       <div className="bg-white pb-40">
         <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
           <div className="px-4 py-3 flex items-center gap-4">

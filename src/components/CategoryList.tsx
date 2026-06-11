@@ -4,6 +4,8 @@ import { CATEGORIES } from '../data';
 import { ViewState } from '../types';
 import { motion } from 'motion/react';
 import { useStudy } from '../context/StudyContext';
+import { TaskHint } from './TaskHint';
+
 const ROOM_FILTERS = ['全部', '客廳', '臥室', '書房', '廚房', '餐廳', '陽台'] as const;
 
 const ROOM_CATEGORY_MAP: Record<string, string[]> = {
@@ -30,6 +32,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({ setView }) => {
 
   return (
     <div className="pb-32 bg-white min-h-screen">
+      <TaskHint sticky={false} setView={setView} />
       <div className="sticky top-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-50">
         <header className="px-6 pt-6 pb-2 flex justify-between items-center">
           <h1 className="text-xl font-black text-gray-900 tracking-tight">商品分類</h1>
